@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Mono.Data.Sqlite;
+using MySql.Data.MySqlClient;
 using Terraria;
 using TerrariaApi.Server;
 using TShockAPI;
@@ -13,6 +16,7 @@ namespace KitZ
     public class KitZ : TerrariaPlugin
     {
         public static Config Config { get; private set; }
+        public static IDbConnection Db { get; private set; }
 
         public KitZ(Main game) : base(game)
         {
@@ -24,6 +28,17 @@ namespace KitZ
             PlayerHooks.PlayerCommand += OnPlayerCommand;
 
             ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                GeneralHooks.ReloadEvent -= OnReload;
+                PlayerHooks.PlayerCommand -= OnPlayerCommand;
+
+                ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
+            }
         }
 
         public override string Author => "Renerte";
@@ -39,7 +54,8 @@ namespace KitZ
             }
 
             Command command = e.CommandList.FirstOrDefault();
-            if (command == null || (command.Permissions.Any() && !command.Permissions.Any(s => e.Player.Group.HasPermission(s))))
+            if (command == null ||
+                (command.Permissions.Any() && !command.Permissions.Any(s => e.Player.Group.HasPermission(s))))
             {
                 return;
             }
@@ -56,10 +72,70 @@ namespace KitZ
 
         private void OnInitialize(EventArgs e)
         {
+            #region Config
+
             string path = Path.Combine(TShock.SavePath, "kitz.json");
             Config = Config.Read(path);
             if (!File.Exists(path))
                 Config.Write(path);
+
+            #endregion
+
+            #region Database
+
+            if (TShock.Config.StorageType.Equals("mysql", StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrWhiteSpace(Config.MySqlHost) ||
+                    string.IsNullOrWhiteSpace(Config.MySqlDbName))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(
+                        "[KitZ] MySQL is enabled, but the Essentials+ MySQL Configuration has not been set.");
+                    Console.WriteLine(
+                        "[KitZ] Please configure your MySQL server information in essentials.json, then restart the server.");
+                    Console.WriteLine("[KitZ] This plugin will now disable itself...");
+                    Console.ResetColor();
+
+                    Dispose(true);
+
+                    return;
+                }
+
+                string[] host = Config.MySqlHost.Split(':');
+                Db = new MySqlConnection
+                {
+                    ConnectionString =
+                        $"Server={host[0]}; Port={(host.Length == 1 ? "3306" : host[1])}; Database={Config.MySqlDbName}; Uid={Config.MySqlUsername}; Pwd={Config.MySqlPassword};"
+                };
+            }
+            else if (TShock.Config.StorageType.Equals("sqlite", StringComparison.OrdinalIgnoreCase))
+            {
+                Db = new SqliteConnection(
+                    "uri=file://" + Path.Combine(TShock.SavePath, "kitz.sqlite") + ",Version=3");
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid storage type!");
+            }
+
+            #endregion
+
+            #region Commands
+
+            //Allows overriding of already created commands.
+            Action<Command> Add = c =>
+            {
+                //Finds any commands with names and aliases that match the new command and removes them.
+                TShockAPI.Commands.ChatCommands.RemoveAll(c2 => c2.Names.Exists(s2 => c.Names.Contains(s2)));
+                //Then adds the new command.
+                TShockAPI.Commands.ChatCommands.Add(c);
+            };
+
+            Add(new Command(Commands.About, "kitz")
+            {
+                HelpText = "About KitZ plugin"
+            });
+            #endregion
         }
     }
 }
