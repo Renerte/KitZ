@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="Commands.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="KitManager.cs" />
     <Compile Include="KitZ.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
