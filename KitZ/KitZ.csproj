@@ -60,6 +60,7 @@
     <Compile Include="Commands.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Db\Kit.cs" />
+    <Compile Include="Db\KitItem.cs" />
     <Compile Include="Db\KitManager.cs" />
     <Compile Include="KitZ.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
