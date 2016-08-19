@@ -7,7 +7,8 @@ namespace KitZ
     {
         public static void About(CommandArgs e)
         {
-            e.Player.SendInfoMessage($"KitZ v{Assembly.GetExecutingAssembly().GetName().Version} made by Renerte - totally customizable kits!");
+            e.Player.SendInfoMessage(
+                $"KitZ v{Assembly.GetExecutingAssembly().GetName().Version} made by Renerte - totally customizable kits!");
         }
     }
 }

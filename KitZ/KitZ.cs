@@ -15,12 +15,17 @@ namespace KitZ
     [ApiVersion(1, 23)]
     public class KitZ : TerrariaPlugin
     {
-        public static Config Config { get; private set; }
-        public static IDbConnection Db { get; private set; }
-
         public KitZ(Main game) : base(game)
         {
         }
+
+        public static Config Config { get; private set; }
+        public static IDbConnection Db { get; private set; }
+
+        public override string Author => "Renerte";
+        public override string Description => "Customizable kits for your TShock server!";
+        public override string Name => "KitZ";
+        public override Version Version => Assembly.GetExecutingAssembly().GetName().Version;
 
         public override void Initialize()
         {
@@ -41,11 +46,6 @@ namespace KitZ
             }
         }
 
-        public override string Author => "Renerte";
-        public override string Description => "Customizable kits for your TShock server!";
-        public override string Name => "KitZ";
-        public override Version Version => Assembly.GetExecutingAssembly().GetName().Version;
-
         private void OnPlayerCommand(PlayerCommandEventArgs e)
         {
             if (e.Handled || e.Player == null)
@@ -53,17 +53,16 @@ namespace KitZ
                 return;
             }
 
-            Command command = e.CommandList.FirstOrDefault();
+            var command = e.CommandList.FirstOrDefault();
             if (command == null ||
                 (command.Permissions.Any() && !command.Permissions.Any(s => e.Player.Group.HasPermission(s))))
             {
-                return;
             }
         }
 
         private void OnReload(ReloadEventArgs e)
         {
-            string path = Path.Combine(TShock.SavePath, "kitz.json");
+            var path = Path.Combine(TShock.SavePath, "kitz.json");
             Config = Config.Read(path);
             if (!File.Exists(path))
                 Config.Write(path);
@@ -74,7 +73,7 @@ namespace KitZ
         {
             #region Config
 
-            string path = Path.Combine(TShock.SavePath, "kitz.json");
+            var path = Path.Combine(TShock.SavePath, "kitz.json");
             Config = Config.Read(path);
             if (!File.Exists(path))
                 Config.Write(path);
@@ -101,7 +100,7 @@ namespace KitZ
                     return;
                 }
 
-                string[] host = Config.MySqlHost.Split(':');
+                var host = Config.MySqlHost.Split(':');
                 Db = new MySqlConnection
                 {
                     ConnectionString =
@@ -135,6 +134,7 @@ namespace KitZ
             {
                 HelpText = "About KitZ plugin"
             });
+
             #endregion
         }
     }

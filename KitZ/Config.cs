@@ -5,10 +5,10 @@ namespace KitZ
 {
     public class Config
     {
-        public string MySqlHost = "";
         public string MySqlDbName = "";
-        public string MySqlUsername = "";
+        public string MySqlHost = "";
         public string MySqlPassword = "";
+        public string MySqlUsername = "";
 
         public string ReloadSuccess = "Reloaded successfully!";
 
