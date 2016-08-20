@@ -3,6 +3,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using KitZ.Db;
 using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Terraria;
@@ -21,6 +22,7 @@ namespace KitZ
 
         public static Config Config { get; private set; }
         public static IDbConnection Db { get; private set; }
+        public static KitManager Kits { get; private set; }
 
         public override string Author => "Renerte";
         public override string Description => "Customizable kits for your TShock server!";
@@ -141,6 +143,11 @@ namespace KitZ
             });
 
             #endregion
+        }
+
+        private void OnPostInitialize(EventArgs e)
+        {
+            Kits = new KitManager(Db);
         }
     }
 }

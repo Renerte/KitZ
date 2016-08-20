@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 using TShockAPI;
 using TShockAPI.DB;
@@ -27,7 +30,7 @@ namespace KitZ.Db
                 new SqlColumn("Items", MySqlDbType.Text),
                 new SqlColumn("MaxUses", MySqlDbType.Int32),
                 new SqlColumn("RefreshTime", MySqlDbType.Int32),
-                new SqlColumn("Regions", MySqlDbType.String)));
+                new SqlColumn("Regions", MySqlDbType.Text)));
 
             sqlCreator.EnsureTableStructure(new SqlTable("KitUses",
                 new SqlColumn("ID", MySqlDbType.Int32) {AutoIncrement = true, Primary = true},
@@ -49,8 +52,20 @@ namespace KitZ.Db
                     var maxUses = result.Get<int>("MaxUses");
                     var refreshTime = result.Get<int>("RefreshTime");
                     kits.Add(new Kit(name, itemList, maxUses, refreshTime, regionList));
+                    new TerrariaApi.Server.ServerLogWriter().ServerWriteLine($"Loaded kit {name}", TraceLevel.Info);
                 }
             }
+        }
+
+        public async Task<Kit> GetAsync(string name)
+        {
+            return await Task.Run(() =>
+            {
+                lock (slimLock)
+                {
+                    return kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                }
+            });
         }
     }
 }
