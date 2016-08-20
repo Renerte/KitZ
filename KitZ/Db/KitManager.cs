@@ -3,6 +3,7 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using MySql.Data.MySqlClient;
+using TShockAPI;
 using TShockAPI.DB;
 
 namespace KitZ.Db
@@ -24,7 +25,6 @@ namespace KitZ.Db
                 new SqlColumn("ID", MySqlDbType.Int32) {AutoIncrement = true, Primary = true},
                 new SqlColumn("Name", MySqlDbType.Text) {Unique = true},
                 new SqlColumn("Items", MySqlDbType.Text),
-                new SqlColumn("Amounts", MySqlDbType.Text),
                 new SqlColumn("MaxUses", MySqlDbType.Int32),
                 new SqlColumn("RefreshTime", MySqlDbType.Int32),
                 new SqlColumn("Regions", MySqlDbType.String)));
@@ -40,9 +40,10 @@ namespace KitZ.Db
             {
                 while (result.Read())
                 {
-                    var items = result.Get<string>("Items").Split(',');
-                    var amounts = result.Get<string>("Amounts").Split(',');
-                    var itemList = items.Select((t, i) => new KitItem(int.Parse(t), int.Parse(amounts[i]))).ToList();
+                    var items = result.Get<string>("Items").Split(',').Select((item, i) => item.Split(':'));
+                    var itemList =
+                        items.Select((item) => new KitItem(int.Parse(item[0]), int.Parse(item[1]), int.Parse(item[2])))
+                            .ToList();
                     var regionList = result.Get<string>("Regions").Split(',').ToList();
                     var name = result.Get<string>("Name");
                     var maxUses = result.Get<int>("MaxUses");
