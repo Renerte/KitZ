@@ -11,6 +11,7 @@ namespace KitZ
         public string MySqlUsername = "";
 
         public string ReloadSuccess = "Reloaded successfully!";
+        public string KitGiven = "You used kit {0}.";
 
         public void Write(string path)
         {

@@ -135,6 +135,11 @@ namespace KitZ
                 HelpText = "About KitZ plugin"
             });
 
+            Add(new Command("kit.use", Commands.Kit, "kit")
+            {
+                HelpText = "Gives kits. /kit name"
+            });
+
             #endregion
         }
     }
