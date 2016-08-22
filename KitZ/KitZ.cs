@@ -3,6 +3,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using KitZ.Db;
 using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Terraria;
@@ -21,6 +22,7 @@ namespace KitZ
 
         public static Config Config { get; private set; }
         public static IDbConnection Db { get; private set; }
+        public static KitManager Kits { get; private set; }
 
         public override string Author => "Renerte";
         public override string Description => "Customizable kits for your TShock server!";
@@ -33,6 +35,7 @@ namespace KitZ
             PlayerHooks.PlayerCommand += OnPlayerCommand;
 
             ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
+            ServerApi.Hooks.GamePostInitialize.Register(this, OnPostInitialize);
         }
 
         protected override void Dispose(bool disposing)
@@ -43,18 +46,17 @@ namespace KitZ
                 PlayerHooks.PlayerCommand -= OnPlayerCommand;
 
                 ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
+                ServerApi.Hooks.GamePostInitialize.Deregister(this, OnPostInitialize);
             }
         }
 
         private void OnPlayerCommand(PlayerCommandEventArgs e)
         {
-            if (e.Handled || e.Player == null)
-            {
+            if (e.Handled || (e.Player == null))
                 return;
-            }
 
             var command = e.CommandList.FirstOrDefault();
-            if (command == null ||
+            if ((command == null) ||
                 (command.Permissions.Any() && !command.Permissions.Any(s => e.Player.Group.HasPermission(s))))
             {
             }
@@ -135,7 +137,17 @@ namespace KitZ
                 HelpText = "About KitZ plugin"
             });
 
+            Add(new Command("kit.use", Commands.Kit, "kit")
+            {
+                HelpText = "Gives kits. /kit name"
+            });
+
             #endregion
+        }
+
+        private void OnPostInitialize(EventArgs e)
+        {
+            Kits = new KitManager(Db);
         }
     }
 }

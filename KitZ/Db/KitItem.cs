@@ -9,9 +9,9 @@
             Modifier = modifier;
         }
 
-        public int Id { get; private set; }
-        public int Amount { get; private set; }
-        public int Modifier { get; private set; }
+        public int Id { get; }
+        public int Amount { get; }
+        public int Modifier { get; }
 
         public override string ToString()
         {
