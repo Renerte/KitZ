@@ -132,14 +132,14 @@ namespace KitZ
                 TShockAPI.Commands.ChatCommands.Add(c);
             };
 
-            Add(new Command(Commands.About, "kitz")
-            {
-                HelpText = "About KitZ plugin"
-            });
-
             Add(new Command("kit.use", Commands.Kit, "kit")
             {
                 HelpText = "Gives kits. /kit name"
+            });
+
+            Add(new Command("kitz.manage", Commands.Manage, "kitz")
+            {
+                HelpText = "Manages kits."
             });
 
             #endregion

@@ -14,7 +14,7 @@ namespace KitZ.Db
     {
         private readonly List<Kit> kits = new List<Kit>();
         private readonly ReaderWriterLockSlim slimLock = new ReaderWriterLockSlim();
-        private IDbConnection db;
+        private readonly IDbConnection db;
 
         public KitManager(IDbConnection db)
         {
@@ -43,10 +43,13 @@ namespace KitZ.Db
                 while (result.Read())
                 {
                     var items = result.Get<string>("Items").Split(',').Select((item, i) => item.Split(':'));
-                    var itemList =
-                        items.Select(item => new KitItem(int.Parse(item[0]), int.Parse(item[1]), int.Parse(item[2])))
-                            .ToList();
-                    var regionList = result.Get<string>("Regions").Split(',').ToList();
+                    var itemList = !string.IsNullOrWhiteSpace(items.FirstOrDefault()[0])
+                        ? items.Select(item => new KitItem(int.Parse(item[0]), int.Parse(item[1]), int.Parse(item[2])))
+                            .ToList()
+                        : new List<KitItem>();
+                    var regionList = !string.IsNullOrWhiteSpace(result.Get<string>("Regions"))
+                        ? result.Get<string>("Regions").Split(',').ToList()
+                        : new List<string>();
                     var name = result.Get<string>("Name");
                     var maxUses = result.Get<int>("MaxUses");
                     var refreshTime = result.Get<int>("RefreshTime");
@@ -64,6 +67,33 @@ namespace KitZ.Db
                 lock (slimLock)
                 {
                     return kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                }
+            });
+        }
+
+        public async Task<bool> AddAsync(string name, List<KitItem> itemList, int maxUses, int refreshTime,
+            List<string> regionList)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        kits.Add(new Kit(name, itemList, maxUses, refreshTime, regionList));
+                        return db.Query(
+                                   "INSERT INTO Kits (Name, Items, MaxUses, RefreshTime, Regions) VALUES (@0, @1, @2, @3, @4)",
+                                   name,
+                                   string.Join(",", itemList),
+                                   maxUses,
+                                   refreshTime,
+                                   string.Join(",", regionList)) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
                 }
             });
         }

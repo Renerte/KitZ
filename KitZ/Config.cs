@@ -5,9 +5,13 @@ namespace KitZ
 {
     public class Config
     {
+        public string ItemAddedToKit = "Added {0} to kit {1}";
+        public string ItemRemovedFromKit = "Removed {0} from kit {1}";
+        public string KitAdded = "Kit {0} was added.";
         public string KitGiven = "You used kit {0}.";
         public string KitNoPerm = "You don't have permission to use kit {0}!";
         public string KitNotFound = "Could not find kit {0}!";
+        public string KitRemoved = "Removed kit {0}";
         public string MySqlDbName = "";
         public string MySqlHost = "";
         public string MySqlPassword = "";
