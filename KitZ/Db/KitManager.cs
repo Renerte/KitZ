@@ -12,9 +12,9 @@ namespace KitZ.Db
 {
     public class KitManager
     {
+        private readonly IDbConnection db;
         private readonly List<Kit> kits = new List<Kit>();
         private readonly ReaderWriterLockSlim slimLock = new ReaderWriterLockSlim();
-        private readonly IDbConnection db;
 
         public KitManager(IDbConnection db)
         {
@@ -88,6 +88,33 @@ namespace KitZ.Db
                                    maxUses,
                                    refreshTime,
                                    string.Join(",", regionList)) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
+
+        public async Task<bool> AddItemAsync(string name, KitItem item)
+        {
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "UPDATE Kits SET Items = @0 WHERE Name = @1"
+                : "UPDATE Kits SET Items = @0 WHERE Name = @1 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                var kit = GetAsync(name).Result;
+                if ((kit == null) || (item.Id == 0) || (item.Amount == 0))
+                    return false;
+                try
+                {
+                    lock (slimLock)
+                    {
+                        kit.ItemList.Add(item);
+                        return db.Query(query, string.Join(",", kit.ItemList), name) > 0;
                     }
                 }
                 catch (Exception ex)
