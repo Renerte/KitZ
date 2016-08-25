@@ -25,7 +25,7 @@ namespace KitZ.Db
 
             sqlCreator.EnsureTableStructure(new SqlTable("Kits",
                 new SqlColumn("ID", MySqlDbType.Int32) {AutoIncrement = true, Primary = true},
-                new SqlColumn("Name", MySqlDbType.Text) {Unique = true},
+                new SqlColumn("Name", MySqlDbType.VarChar, 32) {Length = 32, Unique = true},
                 new SqlColumn("Items", MySqlDbType.Text),
                 new SqlColumn("MaxUses", MySqlDbType.Int32),
                 new SqlColumn("RefreshTime", MySqlDbType.Int32),

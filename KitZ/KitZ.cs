@@ -91,9 +91,9 @@ namespace KitZ
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(
-                        "[KitZ] MySQL is enabled, but the Essentials+ MySQL Configuration has not been set.");
+                        "[KitZ] MySQL is enabled, but the KitZ MySQL Configuration has not been set.");
                     Console.WriteLine(
-                        "[KitZ] Please configure your MySQL server information in essentials.json, then restart the server.");
+                        "[KitZ] Please configure your MySQL server information in kitz.json, then restart the server.");
                     Console.WriteLine("[KitZ] This plugin will now disable itself...");
                     Console.ResetColor();
 
