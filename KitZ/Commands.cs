@@ -47,6 +47,11 @@ namespace KitZ
             switch (e.Parameters[0])
             {
                 case "add":
+                    if (e.Parameters.Count < 2)
+                    {
+                        e.Player.SendErrorMessage("Use: /kitz add name");
+                        return;
+                    }
                     if (await KitZ.Kits.AddAsync(e.Parameters[1], new List<KitItem>(), 0, 0, new List<string>()))
                         e.Player.SendInfoMessage($"Kit {e.Parameters[1]} added.");
                     else
@@ -119,9 +124,19 @@ namespace KitZ
                         return;
                     }
                     if (await KitZ.Kits.DeleteItemAsync(e.Parameters[1], int.Parse(e.Parameters[2])))
-                        e.Player.SendInfoMessage($"Removed item id {e.Parameters[2]} from kit {e.Parameters[1]}");
+                        e.Player.SendInfoMessage($"Removed item id {e.Parameters[2]} from kit {e.Parameters[1]}.");
+                    else
+                    {
+                        e.Player.SendErrorMessage(
+                            $"Could not remove item id {e.Parameters[2]} from kit {e.Parameters[1]}!");
+                    }
                     break;
                 case "list":
+                    if (e.Parameters.Count < 2)
+                    {
+                        e.Player.SendErrorMessage("Use: /kitz list name");
+                        return;
+                    }
                     var kit = await KitZ.Kits.GetAsync(e.Parameters[1]);
                     if (kit != null)
                     {
@@ -144,6 +159,9 @@ namespace KitZ
                     break;
                 case "delregion":
                     //TODO: Remove region from kit.
+                    break;
+                case "help":
+                    //TODO: List of possible commands.
                     break;
                 default:
                     e.Player.SendInfoMessage("Unrecognized action!");
