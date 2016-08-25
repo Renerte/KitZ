@@ -98,31 +98,6 @@ namespace KitZ.Db
             });
         }
 
-//        public async Task<bool> DeleteAsync(TSPlayer player, string name)
-//        {
-//            string query = db.GetSqlType() == SqlType.Mysql
-//                ? "DELETE FROM Homes WHERE UserID = @0 AND Name = @1 AND WorldID = @2"
-//                : "DELETE FROM Homes WHERE UserID = @0 AND Name = @1 AND WorldID = @2 COLLATE NOCASE";
-//
-//            return await Task.Run(() =>
-//            {
-//                try
-//                {
-//                    lock (syncLock)
-//                    {
-//                        homes.RemoveAll(h => h.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)
-//                            && h.UserID == player.User.ID);
-//                        return db.Query(query, player.User.ID, name, Main.worldID) > 0;
-//                    }
-//                }
-//                catch (Exception ex)
-//                {
-//                    TShock.Log.Error(ex.ToString());
-//                    return false;
-//                }
-//            });
-//        }
-
         public async Task<bool> DeleteAsync(string name)
         {
             var query = db.GetSqlType() == SqlType.Mysql

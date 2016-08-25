@@ -27,8 +27,22 @@ namespace KitZ
             {
                 e.Player.SendInfoMessage(string.Format(KitZ.Config.KitGiven, e.Parameters[0]));
                 foreach (var kitItem in kit.ItemList)
-                    e.Player.SendInfoMessage(
-                        $"{TShock.Utils.GetPrefixById(kitItem.Modifier)} {TShock.Utils.GetItemById(kitItem.Id).name} x {kitItem.Amount}");
+                {
+                    if (!e.Player.InventorySlotAvailable)
+                    {
+                        e.Player.SendErrorMessage(KitZ.Config.NoInventorySpace);
+                        break;
+                    }
+                    var item = TShock.Utils.GetItemById(kitItem.Id);
+                    if ((kitItem.Amount == 0) || (kitItem.Amount > item.maxStack))
+                        item.stack = item.maxStack;
+                    else
+                        item.stack = kitItem.Amount;
+                    if (!e.Player.GiveItemCheck(item.netID, item.name, item.width, item.height, item.stack,
+                        kitItem.Modifier))
+                        e.Player.SendErrorMessage(string.Format(KitZ.Config.ItemNotGiven,
+                            TShock.Utils.GetItemById(kitItem.Id).name));
+                }
             }
             else
             {
