@@ -53,7 +53,19 @@ namespace KitZ
                         e.Player.SendErrorMessage($"Could not add kit {e.Parameters[1]}! Details in server log.");
                     break;
                 case "del":
-                    //TODO: Delete kit.
+                    if (e.Parameters.Count < 2)
+                    {
+                        e.Player.SendErrorMessage("Use: /kitz del name");
+                        return;
+                    }
+                    if (await KitZ.Kits.DeleteAsync(e.Parameters[1]))
+                    {
+                        e.Player.SendInfoMessage($"Kit {e.Parameters[1]} was removed.");
+                    }
+                    else
+                    {
+                        e.Player.SendErrorMessage($"Could not remove kit {e.Parameters[1]}!");
+                    }
                     break;
                 case "additem":
                     var itemtag = new Regex(@"\[i(?:\/p(\d+?))?(?:\/(?:x|s)(\d+?))?:(\d+?)\]", RegexOptions.IgnoreCase);
