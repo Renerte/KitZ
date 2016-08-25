@@ -124,5 +124,30 @@ namespace KitZ.Db
                 }
             });
         }
+
+        public async Task<bool> DeleteItemAsync(string name, int itemid)
+        {
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "UPDATE Kits SET Items = @0 WHERE Name = @1"
+                : "UPDATE Kits SET Items = @0 WHERE Name = @1 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        var kit = kits.First(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                        kit.ItemList.RemoveAt(itemid - 1);
+                        return db.Query(query, string.Join(",", kit.ItemList), name) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
     }
 }

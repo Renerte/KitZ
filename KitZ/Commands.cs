@@ -101,7 +101,13 @@ namespace KitZ
                             $"Could not add {TShock.Utils.GetItemById(item.Id).name} to kit {e.Parameters[1]}!");
                     break;
                 case "delitem":
-                    //TODO: Remove item from kit.
+                    if (e.Parameters.Count > 3)
+                    {
+                        e.Player.SendErrorMessage("Use: /kitz delitem name itemid");
+                        return;
+                    }
+                    if (await KitZ.Kits.DeleteItemAsync(e.Parameters[1], int.Parse(e.Parameters[2])))
+                        e.Player.SendInfoMessage($"Removed item id {e.Parameters[2]} from kit {e.Parameters[1]}");
                     break;
                 case "list":
                     var kit = await KitZ.Kits.GetAsync(e.Parameters[1]);
