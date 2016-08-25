@@ -12,9 +12,9 @@ namespace KitZ.Db
 {
     public class KitManager
     {
+        private readonly IDbConnection db;
         private readonly List<Kit> kits = new List<Kit>();
         private readonly ReaderWriterLockSlim slimLock = new ReaderWriterLockSlim();
-        private IDbConnection db;
 
         public KitManager(IDbConnection db)
         {
@@ -43,10 +43,13 @@ namespace KitZ.Db
                 while (result.Read())
                 {
                     var items = result.Get<string>("Items").Split(',').Select((item, i) => item.Split(':'));
-                    var itemList =
-                        items.Select(item => new KitItem(int.Parse(item[0]), int.Parse(item[1]), int.Parse(item[2])))
-                            .ToList();
-                    var regionList = result.Get<string>("Regions").Split(',').ToList();
+                    var itemList = !string.IsNullOrWhiteSpace(items.FirstOrDefault()[0])
+                        ? items.Select(item => new KitItem(int.Parse(item[0]), int.Parse(item[1]), int.Parse(item[2])))
+                            .ToList()
+                        : new List<KitItem>();
+                    var regionList = !string.IsNullOrWhiteSpace(result.Get<string>("Regions"))
+                        ? result.Get<string>("Regions").Split(',').ToList()
+                        : new List<string>();
                     var name = result.Get<string>("Name");
                     var maxUses = result.Get<int>("MaxUses");
                     var refreshTime = result.Get<int>("RefreshTime");
@@ -64,6 +67,134 @@ namespace KitZ.Db
                 lock (slimLock)
                 {
                     return kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                }
+            });
+        }
+
+        public async Task<bool> AddAsync(string name, List<KitItem> itemList, int maxUses, int refreshTime,
+            List<string> regionList)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        kits.Add(new Kit(name, itemList, maxUses, refreshTime, regionList));
+                        return db.Query(
+                                   "INSERT INTO Kits (Name, Items, MaxUses, RefreshTime, Regions) VALUES (@0, @1, @2, @3, @4)",
+                                   name,
+                                   string.Join(",", itemList),
+                                   maxUses,
+                                   refreshTime,
+                                   string.Join(",", regionList)) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
+
+//        public async Task<bool> DeleteAsync(TSPlayer player, string name)
+//        {
+//            string query = db.GetSqlType() == SqlType.Mysql
+//                ? "DELETE FROM Homes WHERE UserID = @0 AND Name = @1 AND WorldID = @2"
+//                : "DELETE FROM Homes WHERE UserID = @0 AND Name = @1 AND WorldID = @2 COLLATE NOCASE";
+//
+//            return await Task.Run(() =>
+//            {
+//                try
+//                {
+//                    lock (syncLock)
+//                    {
+//                        homes.RemoveAll(h => h.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)
+//                            && h.UserID == player.User.ID);
+//                        return db.Query(query, player.User.ID, name, Main.worldID) > 0;
+//                    }
+//                }
+//                catch (Exception ex)
+//                {
+//                    TShock.Log.Error(ex.ToString());
+//                    return false;
+//                }
+//            });
+//        }
+
+        public async Task<bool> DeleteAsync(string name)
+        {
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "DELETE FROM Kits WHERE Name = @0"
+                : "DELETE FROM Kits WHERE Name = @0 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        kits.RemoveAll(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                        return db.Query(query, name) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
+
+        public async Task<bool> AddItemAsync(string name, KitItem item)
+        {
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "UPDATE Kits SET Items = @0 WHERE Name = @1"
+                : "UPDATE Kits SET Items = @0 WHERE Name = @1 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                var kit = GetAsync(name).Result;
+                if ((kit == null) || (item.Id == 0) || (item.Amount == 0))
+                    return false;
+                try
+                {
+                    lock (slimLock)
+                    {
+                        kit.ItemList.Add(item);
+                        return db.Query(query, string.Join(",", kit.ItemList), name) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
+
+        public async Task<bool> DeleteItemAsync(string name, int itemid)
+        {
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "UPDATE Kits SET Items = @0 WHERE Name = @1"
+                : "UPDATE Kits SET Items = @0 WHERE Name = @1 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        var kit = kits.First(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                        kit.ItemList.RemoveAt(itemid - 1);
+                        return db.Query(query, string.Join(",", kit.ItemList), name) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
                 }
             });
         }
