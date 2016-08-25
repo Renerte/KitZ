@@ -161,7 +161,16 @@ namespace KitZ
                     //TODO: Remove region from kit.
                     break;
                 case "help":
-                    //TODO: List of possible commands.
+                    e.Player.SendInfoMessage(
+                        $"KitZ v{Assembly.GetExecutingAssembly().GetName().Version} made by Renerte - totally customizable kits!");
+                    e.Player.SendInfoMessage("Available commands:");
+                    e.Player.SendInfoMessage("/kit name - use kit");
+                    e.Player.SendInfoMessage("/kitz add name - adds kit");
+                    e.Player.SendInfoMessage("/kitz del name - removes kit");
+                    e.Player.SendInfoMessage("/kitz additem name item - adds item to kit");
+                    e.Player.SendInfoMessage("/kitz delitem name itemid - removes item from kit");
+                    e.Player.SendInfoMessage("/kitz list name - lists all items in kit with their ids");
+                    e.Player.SendInfoMessage("/kitz help - this message ;)");
                     break;
                 default:
                     e.Player.SendInfoMessage("Unrecognized action!");
