@@ -134,7 +134,8 @@ namespace KitZ
 
             Add(new Command("kit.use", Commands.Kit, "kit")
             {
-                HelpText = "Gives kits. /kit name"
+                HelpText = "Gives kits. /kit name",
+                AllowServer = false
             });
 
             Add(new Command("kitz.manage", Commands.Manage, "kitz")
