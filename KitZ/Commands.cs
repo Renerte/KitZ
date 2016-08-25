@@ -9,12 +9,6 @@ namespace KitZ
 {
     public static class Commands
     {
-        public static void About(CommandArgs e)
-        {
-            e.Player.SendInfoMessage(
-                $"KitZ v{Assembly.GetExecutingAssembly().GetName().Version} made by Renerte - totally customizable kits!");
-        }
-
         public static async void Kit(CommandArgs e)
         {
             if (e.Parameters.Count == 0)
@@ -64,13 +58,9 @@ namespace KitZ
                         return;
                     }
                     if (await KitZ.Kits.DeleteAsync(e.Parameters[1]))
-                    {
                         e.Player.SendInfoMessage($"Kit {e.Parameters[1]} was removed.");
-                    }
                     else
-                    {
                         e.Player.SendErrorMessage($"Could not remove kit {e.Parameters[1]}!");
-                    }
                     break;
                 case "additem":
                     var itemtag = new Regex(@"\[i(?:\/p(\d+?))?(?:\/(?:x|s)(\d+?))?:(\d+?)\]", RegexOptions.IgnoreCase);
@@ -126,10 +116,8 @@ namespace KitZ
                     if (await KitZ.Kits.DeleteItemAsync(e.Parameters[1], int.Parse(e.Parameters[2])))
                         e.Player.SendInfoMessage($"Removed item id {e.Parameters[2]} from kit {e.Parameters[1]}.");
                     else
-                    {
                         e.Player.SendErrorMessage(
                             $"Could not remove item id {e.Parameters[2]} from kit {e.Parameters[1]}!");
-                    }
                     break;
                 case "list":
                     if (e.Parameters.Count < 2)
