@@ -103,6 +103,18 @@ namespace KitZ
                 case "delitem":
                     //TODO: Remove item from kit.
                     break;
+                case "list":
+                    var kit = await KitZ.Kits.GetAsync(e.Parameters[1]);
+                    if (kit != null)
+                    {
+                        e.Player.SendInfoMessage($"Items in kit {kit.Name}:");
+                        var i = 0;
+                        foreach (var kitItem in kit.ItemList)
+                            e.Player.SendInfoMessage(
+                                $"{++i}: {TShock.Utils.GetPrefixById(kitItem.Modifier)} {TShock.Utils.GetItemById(kitItem.Id).name} x {kitItem.Amount}");
+                        e.Player.SendInfoMessage("End of items.");
+                    }
+                    break;
                 case "maxuse":
                     //TODO: Set max amount of kit uses before refresh is required.
                     break;
