@@ -13,8 +13,8 @@ namespace KitZ.Db
     public class KitManager
     {
         private readonly IDbConnection db;
-        private readonly List<Kit> kits = new List<Kit>();
         private readonly ReaderWriterLockSlim slimLock = new ReaderWriterLockSlim();
+        private readonly List<Kit> kits = new List<Kit>();
 
         public KitManager(IDbConnection db)
         {
@@ -58,6 +58,47 @@ namespace KitZ.Db
             }
 
             TShock.Log.ConsoleInfo($"[KitZ] Loaded {kits.Count} kits.");
+        }
+
+        public async Task<bool> ReloadAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        kits.Clear();
+                        using (var result = db.QueryReader("SELECT * FROM Kits"))
+                        {
+                            while (result.Read())
+                            {
+                                var items = result.Get<string>("Items").Split(',').Select((item, i) => item.Split(':'));
+                                var itemList = !string.IsNullOrWhiteSpace(items.FirstOrDefault()[0])
+                                    ? items.Select(
+                                            item =>
+                                                new KitItem(int.Parse(item[0]), int.Parse(item[1]),
+                                                    int.Parse(item[2])))
+                                        .ToList()
+                                    : new List<KitItem>();
+                                var regionList = !string.IsNullOrWhiteSpace(result.Get<string>("Regions"))
+                                    ? result.Get<string>("Regions").Split(',').ToList()
+                                    : new List<string>();
+                                var name = result.Get<string>("Name");
+                                var maxUses = result.Get<int>("MaxUses");
+                                var refreshTime = result.Get<int>("RefreshTime");
+                                kits.Add(new Kit(name, itemList, maxUses, refreshTime, regionList));
+                            }
+                        }
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
         }
 
         public async Task<Kit> GetAsync(string name)

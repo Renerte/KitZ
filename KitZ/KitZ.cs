@@ -62,12 +62,13 @@ namespace KitZ
             }
         }
 
-        private void OnReload(ReloadEventArgs e)
+        private async void OnReload(ReloadEventArgs e)
         {
             var path = Path.Combine(TShock.SavePath, "kitz.json");
             Config = Config.Read(path);
             if (!File.Exists(path))
                 Config.Write(path);
+            await Kits.ReloadAsync();
             e.Player.SendSuccessMessage($"[KitZ] {Config.ReloadSuccess}");
         }
 
