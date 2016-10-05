@@ -30,7 +30,8 @@ namespace KitZ.Db
                 new SqlColumn("Items", MySqlDbType.Text),
                 new SqlColumn("MaxUses", MySqlDbType.Int32),
                 new SqlColumn("RefreshTime", MySqlDbType.Int32),
-                new SqlColumn("Regions", MySqlDbType.Text)));
+                new SqlColumn("Regions", MySqlDbType.Text),
+                new SqlColumn("Protect", MySqlDbType.Bit)));
 
             sqlCreator.EnsureTableStructure(new SqlTable("KitUses",
                 new SqlColumn("ID", MySqlDbType.Int32) {AutoIncrement = true, Primary = true},
@@ -54,7 +55,8 @@ namespace KitZ.Db
                     var name = result.Get<string>("Name");
                     var maxUses = result.Get<int>("MaxUses");
                     var refreshTime = TimeSpan.Parse(result.Get<string>("RefreshTime"));
-                    kits.Add(new Kit(name, itemList, maxUses, refreshTime, regionList));
+                    var protect = result.Get<bool>("Protect");
+                    kits.Add(new Kit(name, itemList, maxUses, refreshTime, regionList, protect));
                 }
             }
 
@@ -102,7 +104,8 @@ namespace KitZ.Db
                                 var name = result.Get<string>("Name");
                                 var maxUses = result.Get<int>("MaxUses");
                                 var refreshTime = TimeSpan.Parse(result.Get<string>("RefreshTime"));
-                                kits.Add(new Kit(name, itemList, maxUses, refreshTime, regionList));
+                                var protect = result.Get<bool>("Protect");
+                                kits.Add(new Kit(name, itemList, maxUses, refreshTime, regionList, protect));
                             }
                         }
 
@@ -145,7 +148,7 @@ namespace KitZ.Db
         }
 
         public async Task<bool> AddAsync(string name, List<KitItem> itemList, int maxUses, TimeSpan refreshTime,
-            List<string> regionList)
+            List<string> regionList, bool protect)
         {
             return await Task.Run(() =>
             {
@@ -153,7 +156,7 @@ namespace KitZ.Db
                 {
                     lock (slimLock)
                     {
-                        kits.Add(new Kit(name, itemList, maxUses, refreshTime, regionList));
+                        kits.Add(new Kit(name, itemList, maxUses, refreshTime, regionList, protect));
                         return db.Query(
                                    "INSERT INTO Kits (Name, Items, MaxUses, RefreshTime, Regions) VALUES (@0, @1, @2, @3, @4)",
                                    name,

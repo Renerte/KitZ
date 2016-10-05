@@ -17,23 +17,23 @@ namespace KitZ
                 e.Player.SendErrorMessage(KitZ.Config.NoKitEntered);
                 return;
             }
-            if (!e.Player.HasPermission($"kitz.use.{e.Parameters[0]}"))
-            {
-                e.Player.SendErrorMessage(string.Format(KitZ.Config.KitNoPerm, e.Parameters[0]));
-                return;
-            }
 
             var kit = await KitZ.Kits.GetAsync(e.Parameters.First());
             if (kit != null)
             {
-                if (!await KitZ.Kits.SetKitUseAsync(e.Player, kit))
+                if (kit.Protect && !e.Player.HasPermission($"kitz.use.{e.Parameters[0]}"))
                 {
-                    e.Player.SendErrorMessage(string.Format(KitZ.Config.KitUseLimitReached, kit.Name));
+                    e.Player.SendErrorMessage(string.Format(KitZ.Config.KitNoPerm, kit.Name));
                     return;
                 }
                 if ((kit.RegionList.Count > 0) && !kit.RegionList.Contains(e.Player.CurrentRegion.Name))
                 {
                     e.Player.SendErrorMessage(string.Format(KitZ.Config.OutsideRequiredRegion, kit.Name));
+                    return;
+                }
+                if (!await KitZ.Kits.SetKitUseAsync(e.Player, kit))
+                {
+                    e.Player.SendErrorMessage(string.Format(KitZ.Config.KitUseLimitReached, kit.Name));
                     return;
                 }
                 e.Player.SendInfoMessage(string.Format(KitZ.Config.KitGiven, e.Parameters[0]));
@@ -74,7 +74,7 @@ namespace KitZ
                     if (
                         await
                             KitZ.Kits.AddAsync(e.Parameters[1], new List<KitItem>(), 0, TimeSpan.Zero,
-                                new List<string>()))
+                                new List<string>(), false))
                         e.Player.SendInfoMessage($"Kit {e.Parameters[1]} added.");
                     else
                         e.Player.SendErrorMessage($"Could not add kit {e.Parameters[1]}! Details in server log.");
