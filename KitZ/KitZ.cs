@@ -13,7 +13,7 @@ using TShockAPI.Hooks;
 
 namespace KitZ
 {
-    [ApiVersion(1, 23)]
+    [ApiVersion(1, 25)]
     public class KitZ : TerrariaPlugin
     {
         public KitZ(Main game) : base(game)
