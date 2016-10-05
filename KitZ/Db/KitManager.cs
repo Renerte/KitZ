@@ -133,7 +133,7 @@ namespace KitZ.Db
             {
                 lock (slimLock)
                 {
-                    return kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                    return kits.First(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
                 }
             });
         }
@@ -237,6 +237,17 @@ namespace KitZ.Db
                 {
                     TShock.Log.Error(ex.ToString());
                     return false;
+                }
+            });
+        }
+
+        public async Task<KitUse> GetKitUse(TSPlayer player, Kit kit)
+        {
+            return await Task.Run(() =>
+            {
+                lock (slimLock)
+                {
+                    return kitUses.First(u => u.Kit.Equals(kit) && u.User.Equals(player.User));
                 }
             });
         }
