@@ -13,8 +13,9 @@ namespace KitZ.Db
     public class KitManager
     {
         private readonly IDbConnection db;
-        private readonly ReaderWriterLockSlim slimLock = new ReaderWriterLockSlim();
         private readonly List<Kit> kits = new List<Kit>();
+        private readonly List<KitUse> kitUses = new List<KitUse>();
+        private readonly ReaderWriterLockSlim slimLock = new ReaderWriterLockSlim();
 
         public KitManager(IDbConnection db)
         {
@@ -34,7 +35,7 @@ namespace KitZ.Db
             sqlCreator.EnsureTableStructure(new SqlTable("KitUses",
                 new SqlColumn("ID", MySqlDbType.Int32) {AutoIncrement = true, Primary = true},
                 new SqlColumn("UserID", MySqlDbType.Int32),
-                new SqlColumn("KitID", MySqlDbType.Int32),
+                new SqlColumn("Kit", MySqlDbType.VarChar, 32),
                 new SqlColumn("Uses", MySqlDbType.Int32),
                 new SqlColumn("ExpireTime", MySqlDbType.Text)));
 
@@ -52,8 +53,20 @@ namespace KitZ.Db
                         : new List<string>();
                     var name = result.Get<string>("Name");
                     var maxUses = result.Get<int>("MaxUses");
-                    var refreshTime = result.Get<int>("RefreshTime");
+                    var refreshTime = TimeSpan.Parse(result.Get<string>("RefreshTime"));
                     kits.Add(new Kit(name, itemList, maxUses, refreshTime, regionList));
+                }
+            }
+
+            using (var result = db.QueryReader("SELECT * FROM KitUses"))
+            {
+                while (result.Read())
+                {
+                    var user = TShock.Users.GetUserByID(result.Get<int>("UserID"));
+                    var kit = kits.First(k => k.Name.Equals(result.Get<string>("Kit"), StringComparison.InvariantCultureIgnoreCase));
+                    var uses = result.Get<int>("Uses");
+                    var expireTime = DateTime.Parse(result.Get<string>("ExpireTime"));
+                    kitUses.Add(new KitUse(user, kit, uses, expireTime));
                 }
             }
 
@@ -86,8 +99,21 @@ namespace KitZ.Db
                                     : new List<string>();
                                 var name = result.Get<string>("Name");
                                 var maxUses = result.Get<int>("MaxUses");
-                                var refreshTime = result.Get<int>("RefreshTime");
+                                var refreshTime = TimeSpan.Parse(result.Get<string>("RefreshTime"));
                                 kits.Add(new Kit(name, itemList, maxUses, refreshTime, regionList));
+                            }
+                        }
+
+                        kitUses.Clear();
+                        using (var result = db.QueryReader("SELECT * FROM KitUses"))
+                        {
+                            while (result.Read())
+                            {
+                                var user = TShock.Users.GetUserByID(result.Get<int>("UserID"));
+                                var kit = kits.First(k => k.Name.Equals(result.Get<string>("Kit"), StringComparison.InvariantCultureIgnoreCase));
+                                var uses = result.Get<int>("Uses");
+                                var expireTime = DateTime.Parse(result.Get<string>("ExpireTime"));
+                                kitUses.Add(new KitUse(user, kit, uses, expireTime));
                             }
                         }
                         return true;
@@ -112,7 +138,7 @@ namespace KitZ.Db
             });
         }
 
-        public async Task<bool> AddAsync(string name, List<KitItem> itemList, int maxUses, int refreshTime,
+        public async Task<bool> AddAsync(string name, List<KitItem> itemList, int maxUses, TimeSpan refreshTime,
             List<string> regionList)
         {
             return await Task.Run(() =>

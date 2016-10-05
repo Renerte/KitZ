@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace KitZ.Db
 {
     public class Kit
     {
-        public Kit(string name, List<KitItem> itemList, int maxUses, int refreshTime, List<string> regionList)
+        public Kit(string name, List<KitItem> itemList, int maxUses, TimeSpan refreshTime, List<string> regionList)
         {
             Name = name;
             ItemList = itemList;
@@ -16,7 +17,7 @@ namespace KitZ.Db
         public string Name { get; private set; }
         public List<KitItem> ItemList { get; private set; }
         public int MaxUses { get; private set; }
-        public int RefreshTime { get; private set; }
+        public TimeSpan RefreshTime { get; private set; }
         public List<string> RegionList { get; private set; }
     }
 }
