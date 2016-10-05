@@ -31,6 +31,11 @@ namespace KitZ
                     e.Player.SendErrorMessage(string.Format(KitZ.Config.KitUseLimitReached, kit.Name));
                     return;
                 }
+                if ((kit.RegionList.Count > 0) && !kit.RegionList.Contains(e.Player.CurrentRegion.Name))
+                {
+                    e.Player.SendErrorMessage(string.Format(KitZ.Config.OutsideRequiredRegion, kit.Name));
+                    return;
+                }
                 e.Player.SendInfoMessage(string.Format(KitZ.Config.KitGiven, e.Parameters[0]));
                 foreach (var kitItem in kit.ItemList)
                 {

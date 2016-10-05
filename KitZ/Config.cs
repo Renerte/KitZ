@@ -16,6 +16,7 @@ namespace KitZ
         public string MySqlUsername = "";
         public string NoInventorySpace = "You don't have space in inventory!";
         public string NoKitEntered = "Please enter kit name: /kit name";
+        public string OutsideRequiredRegion = "You can only use kit {0} to certain places!";
 
         public string ReloadSuccess = "Reloaded successfully!";
 
