@@ -61,7 +61,10 @@ namespace KitZ
                         e.Player.SendErrorMessage("Use: /kitz add name");
                         return;
                     }
-                    if (await KitZ.Kits.AddAsync(e.Parameters[1], new List<KitItem>(), 0, TimeSpan.Zero, new List<string>()))
+                    if (
+                        await
+                            KitZ.Kits.AddAsync(e.Parameters[1], new List<KitItem>(), 0, TimeSpan.Zero,
+                                new List<string>()))
                         e.Player.SendInfoMessage($"Kit {e.Parameters[1]} added.");
                     else
                         e.Player.SendErrorMessage($"Could not add kit {e.Parameters[1]}! Details in server log.");

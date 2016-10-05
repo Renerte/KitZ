@@ -63,7 +63,9 @@ namespace KitZ.Db
                 while (result.Read())
                 {
                     var user = TShock.Users.GetUserByID(result.Get<int>("UserID"));
-                    var kit = kits.First(k => k.Name.Equals(result.Get<string>("Kit"), StringComparison.InvariantCultureIgnoreCase));
+                    var kit =
+                        kits.First(
+                            k => k.Name.Equals(result.Get<string>("Kit"), StringComparison.InvariantCultureIgnoreCase));
                     var uses = result.Get<int>("Uses");
                     var expireTime = DateTime.Parse(result.Get<string>("ExpireTime"));
                     kitUses.Add(new KitUse(user, kit, uses, expireTime));
@@ -110,7 +112,11 @@ namespace KitZ.Db
                             while (result.Read())
                             {
                                 var user = TShock.Users.GetUserByID(result.Get<int>("UserID"));
-                                var kit = kits.First(k => k.Name.Equals(result.Get<string>("Kit"), StringComparison.InvariantCultureIgnoreCase));
+                                var kit =
+                                    kits.First(
+                                        k =>
+                                            k.Name.Equals(result.Get<string>("Kit"),
+                                                StringComparison.InvariantCultureIgnoreCase));
                                 var uses = result.Get<int>("Uses");
                                 var expireTime = DateTime.Parse(result.Get<string>("ExpireTime"));
                                 kitUses.Add(new KitUse(user, kit, uses, expireTime));
@@ -241,13 +247,69 @@ namespace KitZ.Db
             });
         }
 
-        public async Task<KitUse> GetKitUse(TSPlayer player, Kit kit)
+        public async Task<KitUse> GetKitUseAsync(TSPlayer player, Kit kit)
         {
             return await Task.Run(() =>
             {
                 lock (slimLock)
                 {
                     return kitUses.First(u => u.Kit.Equals(kit) && u.User.Equals(player.User));
+                }
+            });
+        }
+
+        public async Task<bool> SetKitUseAsync(TSPlayer player, Kit kit)
+        {
+            var kitUse = await GetKitUseAsync(player, kit);
+            if (kitUse == null)
+            {
+                await AddKitUseAsync(player, kit);
+                kitUse = await GetKitUseAsync(player, kit);
+            }
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "UPDATE KitUses SET Uses = @0 WHERE UserID = @1 AND Kit = @2"
+                : "UPDATE KitUses SET Uses = @0 WHERE UserID = @1 AND Kit = @2 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        if (kitUse.Uses >= kitUse.Kit.MaxUses)
+                            return false;
+                        kitUse.Uses += 1;
+                        return db.Query(query, kitUse.Uses, player.User, kit.Name) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
+
+        public async Task<bool> AddKitUseAsync(TSPlayer player, Kit kit)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        kitUses.Add(new KitUse(player.User, kit, 0, DateTime.Now.Add(kit.RefreshTime)));
+                        return db.Query("INSERT INTO KitUses (UserID, Kit, Uses, ExpireTime) VALUES (@0, @1, @2, @3)",
+                                   player.User.ID,
+                                   kit.Name,
+                                   0,
+                                   DateTime.Now.Add(kit.RefreshTime).ToString()) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
                 }
             });
         }
