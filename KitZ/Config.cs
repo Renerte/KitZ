@@ -9,6 +9,7 @@ namespace KitZ
         public string KitGiven = "You used kit {0}.";
         public string KitNoPerm = "You don't have permission to use kit {0}!";
         public string KitNotFound = "Could not find kit {0}!";
+        public string KitUseLimitReached = "You can't use kit {0} if you reached its use limit!";
         public string MySqlDbName = "";
         public string MySqlHost = "";
         public string MySqlPassword = "";

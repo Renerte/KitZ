@@ -26,6 +26,11 @@ namespace KitZ
             var kit = await KitZ.Kits.GetAsync(e.Parameters.First());
             if (kit != null)
             {
+                if (!await KitZ.Kits.SetKitUseAsync(e.Player, kit))
+                {
+                    e.Player.SendErrorMessage(string.Format(KitZ.Config.KitUseLimitReached, kit.Name));
+                    return;
+                }
                 e.Player.SendInfoMessage(string.Format(KitZ.Config.KitGiven, e.Parameters[0]));
                 foreach (var kitItem in kit.ItemList)
                 {
