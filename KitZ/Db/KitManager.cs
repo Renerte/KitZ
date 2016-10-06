@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
@@ -66,7 +67,7 @@ namespace KitZ.Db
                 {
                     var user = TShock.Users.GetUserByID(result.Get<int>("UserID"));
                     var kit =
-                        kits.First(
+                        kits.Find(
                             k => k.Name.Equals(result.Get<string>("Kit"), StringComparison.InvariantCultureIgnoreCase));
                     var uses = result.Get<int>("Uses");
                     var expireTime = DateTime.Parse(result.Get<string>("ExpireTime"));
@@ -116,7 +117,7 @@ namespace KitZ.Db
                             {
                                 var user = TShock.Users.GetUserByID(result.Get<int>("UserID"));
                                 var kit =
-                                    kits.First(
+                                    kits.Find(
                                         k =>
                                             k.Name.Equals(result.Get<string>("Kit"),
                                                 StringComparison.InvariantCultureIgnoreCase));
@@ -142,7 +143,7 @@ namespace KitZ.Db
             {
                 lock (slimLock)
                 {
-                    return kits.First(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                    return kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
                 }
             });
         }
@@ -237,7 +238,7 @@ namespace KitZ.Db
                 {
                     lock (slimLock)
                     {
-                        var kit = kits.First(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                        var kit = kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
                         kit.ItemList.RemoveAt(itemid - 1);
                         return db.Query(query, string.Join(",", kit.ItemList), name) > 0;
                     }
@@ -256,14 +257,7 @@ namespace KitZ.Db
             {
                 lock (slimLock)
                 {
-                    try
-                    {
-                        return kitUses.First(u => u.Kit.Equals(kit) && u.User.Equals(player.User));
-                    }
-                    catch
-                    {
-                        return null;
-                    }
+                    return kitUses.Find(u => u.Kit.Equals(kit) && u.User.Equals(player.User));
                 }
             });
         }
@@ -311,12 +305,12 @@ namespace KitZ.Db
                 {
                     lock (slimLock)
                     {
-                        kitUses.Add(new KitUse(player.User, kit, 0, DateTime.Now.Add(kit.RefreshTime)));
+                        kitUses.Add(new KitUse(player.User, kit, 0, DateTime.UtcNow.Add(kit.RefreshTime)));
                         return db.Query("INSERT INTO KitUses (UserID, Kit, Uses, ExpireTime) VALUES (@0, @1, @2, @3)",
                                    player.User.ID,
                                    kit.Name,
                                    0,
-                                   DateTime.Now.Add(kit.RefreshTime).ToString()) > 0;
+                                   DateTime.UtcNow.Add(kit.RefreshTime).ToString()) > 0;
                     }
                 }
                 catch (Exception ex)
@@ -325,6 +319,55 @@ namespace KitZ.Db
                     return false;
                 }
             });
+        }
+
+        public async Task<List<KitUse>> GetPlayerKitUsesAsync(TSPlayer player)
+        {
+            return await Task.Run(() =>
+            {
+                lock (slimLock)
+                {
+                    return kitUses.FindAll(u => u.User.Equals(player.User));
+                }
+            });
+        }
+
+        public async Task<bool> DeleteKitUseAsync(KitUse kitUse)
+        {
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "DELETE FROM KitUses WHERE UserID = @0 AND Kit = @1"
+                : "DELETE FROM KitUses WHERE UserID = @0 AND Kit = @1 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        kitUses.RemoveAll(u => u.Equals(kitUse));
+                        return db.Query(query, kitUse.User.ID, kitUse.Kit.Name) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
+
+        public void CleanupKitUsesAsync()
+        {
+            lock (slimLock)
+            {
+                foreach (var kitUse in kitUses)
+                {
+                    if (kitUse.ExpireTime.CompareTo(DateTime.UtcNow) <= 0)
+                    {
+                        DeleteKitUseAsync(kitUse);
+                    }
+                }
+            }
         }
     }
 }

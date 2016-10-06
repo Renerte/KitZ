@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using KitZ.Db;
 using TShockAPI;
 
@@ -56,6 +57,9 @@ namespace KitZ
                         e.Player.SendErrorMessage(string.Format(KitZ.Config.ItemNotGiven,
                             TShock.Utils.GetItemById(kitItem.Id).name));
                 }
+                var kitUse = await KitZ.Kits.GetKitUseAsync(e.Player, kit);
+                await Task.Delay(kitUse.ExpireTime - DateTime.UtcNow);
+                await KitZ.Kits.DeleteKitUseAsync(kitUse);
             }
             else
             {
