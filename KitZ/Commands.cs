@@ -26,7 +26,9 @@ namespace KitZ
                     e.Player.SendErrorMessage(string.Format(KitZ.Config.KitNoPerm, kit.Name));
                     return;
                 }
-                if ((kit.RegionList.Count > 0) && !kit.RegionList.Contains(e.Player.CurrentRegion.Name))
+                var playerRegion = e.Player.CurrentRegion;
+                var regionName = playerRegion != null ? playerRegion.Name : "";
+                if ((kit.RegionList.Count > 0) && !kit.RegionList.Contains(regionName))
                 {
                     e.Player.SendErrorMessage(string.Format(KitZ.Config.OutsideRequiredRegion, kit.Name));
                     return;

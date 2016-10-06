@@ -31,7 +31,7 @@ namespace KitZ.Db
                 new SqlColumn("MaxUses", MySqlDbType.Int32),
                 new SqlColumn("RefreshTime", MySqlDbType.Int32),
                 new SqlColumn("Regions", MySqlDbType.Text),
-                new SqlColumn("Protect", MySqlDbType.Bit)));
+                new SqlColumn("Protect", MySqlDbType.Int32)));
 
             sqlCreator.EnsureTableStructure(new SqlTable("KitUses",
                 new SqlColumn("ID", MySqlDbType.Int32) {AutoIncrement = true, Primary = true},
@@ -256,7 +256,14 @@ namespace KitZ.Db
             {
                 lock (slimLock)
                 {
-                    return kitUses.First(u => u.Kit.Equals(kit) && u.User.Equals(player.User));
+                    try
+                    {
+                        return kitUses.First(u => u.Kit.Equals(kit) && u.User.Equals(player.User));
+                    }
+                    catch
+                    {
+                        return null;
+                    }
                 }
             });
         }
@@ -285,7 +292,7 @@ namespace KitZ.Db
                         if (kitUse.Uses >= kitUse.Kit.MaxUses)
                             return false;
                         kitUse.Uses += 1;
-                        return db.Query(query, kitUse.Uses, player.User, kit.Name) > 0;
+                        return db.Query(query, kitUse.Uses, player.User.ID, kit.Name) > 0;
                     }
                 }
                 catch (Exception ex)
