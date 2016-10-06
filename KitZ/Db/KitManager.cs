@@ -261,8 +261,11 @@ namespace KitZ.Db
             });
         }
 
-        public async Task<bool> SetKitUseAsync(TSPlayer player, Kit kit)
+        public async Task<bool> DoKitUseAsync(TSPlayer player, Kit kit)
         {
+            if (kit.MaxUses == 0)
+                return await Task.Run(() => true);
+
             var kitUse = await GetKitUseAsync(player, kit);
             if (kitUse == null)
             {

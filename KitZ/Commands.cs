@@ -31,7 +31,7 @@ namespace KitZ
                     e.Player.SendErrorMessage(string.Format(KitZ.Config.OutsideRequiredRegion, kit.Name));
                     return;
                 }
-                if (!await KitZ.Kits.SetKitUseAsync(e.Player, kit))
+                if (!await KitZ.Kits.DoKitUseAsync(e.Player, kit))
                 {
                     e.Player.SendErrorMessage(string.Format(KitZ.Config.KitUseLimitReached, kit.Name));
                     return;
