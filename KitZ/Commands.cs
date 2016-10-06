@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using KitZ.Db;
 using TShockAPI;
 
@@ -17,15 +18,27 @@ namespace KitZ
                 e.Player.SendErrorMessage(KitZ.Config.NoKitEntered);
                 return;
             }
-            if (!e.Player.HasPermission($"kitz.use.{e.Parameters[0]}"))
-            {
-                e.Player.SendErrorMessage(string.Format(KitZ.Config.KitNoPerm, e.Parameters[0]));
-                return;
-            }
 
             var kit = await KitZ.Kits.GetAsync(e.Parameters.First());
             if (kit != null)
             {
+                if (kit.Protect && !e.Player.HasPermission($"kitz.use.{e.Parameters[0]}"))
+                {
+                    e.Player.SendErrorMessage(string.Format(KitZ.Config.KitNoPerm, kit.Name));
+                    return;
+                }
+                var playerRegion = e.Player.CurrentRegion;
+                var regionName = playerRegion != null ? playerRegion.Name : "";
+                if ((kit.RegionList.Count > 0) && !kit.RegionList.Contains(regionName))
+                {
+                    e.Player.SendErrorMessage(string.Format(KitZ.Config.OutsideRequiredRegion, kit.Name));
+                    return;
+                }
+                if (!await KitZ.Kits.DoKitUseAsync(e.Player, kit))
+                {
+                    e.Player.SendErrorMessage(string.Format(KitZ.Config.KitUseLimitReached, kit.Name));
+                    return;
+                }
                 e.Player.SendInfoMessage(string.Format(KitZ.Config.KitGiven, e.Parameters[0]));
                 foreach (var kitItem in kit.ItemList)
                 {
@@ -44,6 +57,9 @@ namespace KitZ
                         e.Player.SendErrorMessage(string.Format(KitZ.Config.ItemNotGiven,
                             TShock.Utils.GetItemById(kitItem.Id).name));
                 }
+                var kitUse = await KitZ.Kits.GetKitUseAsync(e.Player, kit);
+                await Task.Delay(kitUse.ExpireTime - DateTime.UtcNow);
+                await KitZ.Kits.DeleteKitUseAsync(kitUse);
             }
             else
             {
@@ -61,7 +77,10 @@ namespace KitZ
                         e.Player.SendErrorMessage("Use: /kitz add name");
                         return;
                     }
-                    if (await KitZ.Kits.AddAsync(e.Parameters[1], new List<KitItem>(), 0, TimeSpan.Zero, new List<string>()))
+                    if (
+                        await
+                            KitZ.Kits.AddAsync(e.Parameters[1], new List<KitItem>(), 0, TimeSpan.Zero,
+                                new List<string>(), false))
                         e.Player.SendInfoMessage($"Kit {e.Parameters[1]} added.");
                     else
                         e.Player.SendErrorMessage($"Could not add kit {e.Parameters[1]}! Details in server log.");

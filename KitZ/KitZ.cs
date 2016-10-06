@@ -3,6 +3,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using KitZ.Db;
 using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
@@ -150,6 +151,7 @@ namespace KitZ
         private void OnPostInitialize(EventArgs e)
         {
             Kits = new KitManager(Db);
+            Kits.CleanupKitUsesAsync();
         }
     }
 }
