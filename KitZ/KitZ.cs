@@ -3,6 +3,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using KitZ.Db;
 using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
@@ -13,7 +14,7 @@ using TShockAPI.Hooks;
 
 namespace KitZ
 {
-    [ApiVersion(1, 23)]
+    [ApiVersion(1, 25)]
     public class KitZ : TerrariaPlugin
     {
         public KitZ(Main game) : base(game)
@@ -62,12 +63,13 @@ namespace KitZ
             }
         }
 
-        private void OnReload(ReloadEventArgs e)
+        private async void OnReload(ReloadEventArgs e)
         {
             var path = Path.Combine(TShock.SavePath, "kitz.json");
             Config = Config.Read(path);
             if (!File.Exists(path))
                 Config.Write(path);
+            await Kits.ReloadAsync();
             e.Player.SendSuccessMessage($"[KitZ] {Config.ReloadSuccess}");
         }
 
@@ -149,6 +151,7 @@ namespace KitZ
         private void OnPostInitialize(EventArgs e)
         {
             Kits = new KitManager(Db);
+            Kits.CleanupKitUsesAsync();
         }
     }
 }
