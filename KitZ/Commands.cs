@@ -69,6 +69,10 @@ namespace KitZ
 
         public static async void Manage(CommandArgs e)
         {
+            if (e.Parameters.Count < 1)
+            {
+                e.Player.SendErrorMessage("Use /kitz help for a list of commands.");
+            }
             switch (e.Parameters[0])
             {
                 case "add":
