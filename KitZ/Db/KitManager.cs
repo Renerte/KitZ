@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
@@ -137,6 +136,8 @@ namespace KitZ.Db
             });
         }
 
+        #region Managing kits
+
         public async Task<Kit> GetAsync(string name)
         {
             return await Task.Run(() =>
@@ -199,6 +200,10 @@ namespace KitZ.Db
             });
         }
 
+        #endregion
+
+        #region Kit settings
+
         public async Task<bool> AddItemAsync(string name, KitItem item)
         {
             var query = db.GetSqlType() == SqlType.Mysql
@@ -207,7 +212,7 @@ namespace KitZ.Db
 
             return await Task.Run(() =>
             {
-                var kit = GetAsync(name).Result;
+                var kit = kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
                 if ((kit == null) || (item.Id == 0) || (item.Amount == 0))
                     return false;
                 try
@@ -250,6 +255,110 @@ namespace KitZ.Db
                 }
             });
         }
+
+        public async Task<bool> SetMaxKitUsesAsync(string name, int maxUses)
+        {
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "UPDATE Kits SET MaxUses = @0 WHERE Name = @1"
+                : "UPDATE Kits SET MaxUses = @0 WHERE Name = @1 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        var kit = kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                        kit.MaxUses = maxUses;
+                        return db.Query(query, maxUses, name) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
+
+        public async Task<bool> SetRefreshTimeAsync(string name, TimeSpan time)
+        {
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "UPDATE Kits SET RefreshTime = @0 WHERE Name = @1"
+                : "UPDATE Kits SET RefreshTime = @0 WHERE Name = @1 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        var kit = kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                        kit.RefreshTime = time;
+                        return db.Query(query, time, name) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
+
+        public async Task<bool> AddRegionAsync(string name, string region)
+        {
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "UPDATE Kits SET Regions = @0 WHERE Name = @1"
+                : "UPDATE Kits SET Regions = @0 WHERE Name = @1 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        var kit = kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                        kit.RegionList.Add(region);
+                        return db.Query(query, string.Join(",", kit.RegionList), name) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
+
+        public async Task<bool> DeleteRegionAsync(string name, string region)
+        {
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "UPDATE Kits SET Regions = @0 WHERE Name = @1"
+                : "UPDATE Kits SET Regions = @0 WHERE Name = @1 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        var kit = kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                        kit.RegionList.Remove(region);
+                        return db.Query(query, string.Join(",", kit.RegionList), name) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
+
+        #endregion
+
+        #region Kit uses
 
         public async Task<KitUse> GetKitUseAsync(TSPlayer player, Kit kit)
         {
@@ -361,13 +470,11 @@ namespace KitZ.Db
             lock (slimLock)
             {
                 foreach (var kitUse in kitUses)
-                {
                     if (kitUse.ExpireTime.CompareTo(DateTime.UtcNow) <= 0)
-                    {
                         DeleteKitUseAsync(kitUse);
-                    }
-                }
             }
         }
+
+        #endregion
     }
 }
