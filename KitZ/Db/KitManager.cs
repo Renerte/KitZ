@@ -212,7 +212,7 @@ namespace KitZ.Db
 
             return await Task.Run(() =>
             {
-                var kit = GetAsync(name).Result;
+                var kit = kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
                 if ((kit == null) || (item.Id == 0) || (item.Amount == 0))
                     return false;
                 try
@@ -271,6 +271,56 @@ namespace KitZ.Db
                         var kit = kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
                         kit.MaxUses = maxUses;
                         return db.Query(query, maxUses, name) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
+
+        public async Task<bool> AddRegionAsync(string name, string region)
+        {
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "UPDATE Kits SET Regions = @0 WHERE Name = @1"
+                : "UPDATE Kits SET Regions = @0 WHERE Name = @1 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        var kit = kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                        kit.RegionList.Add(region);
+                        return db.Query(query, string.Join(",", kit.RegionList), name) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
+
+        public async Task<bool> DeleteRegionAsync(string name, string region)
+        {
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "UPDATE Kits SET Regions = @0 WHERE Name = @1"
+                : "UPDATE Kits SET Regions = @0 WHERE Name = @1 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        var kit = kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                        kit.RegionList.Remove(region);
+                        return db.Query(query, string.Join(",", kit.RegionList), name) > 0;
                     }
                 }
                 catch (Exception ex)
