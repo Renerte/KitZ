@@ -20,7 +20,6 @@ namespace KitZ.Db
 
         public string Name { get; private set; }
         public List<KitItem> ItemList { get; private set; }
-        public TimeSpan RefreshTime { get; private set; }
         public List<string> RegionList { get; private set; }
         public bool Protect { get; private set; }
 
@@ -30,5 +29,7 @@ namespace KitZ.Db
 
             set { maxUses = value > 0 ? value : 0; }
         }
+
+        public TimeSpan RefreshTime { get; set; }
     }
 }

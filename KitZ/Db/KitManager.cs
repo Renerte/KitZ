@@ -281,6 +281,31 @@ namespace KitZ.Db
             });
         }
 
+        public async Task<bool> SetRefreshTimeAsync(string name, TimeSpan time)
+        {
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "UPDATE Kits SET RefreshTime = @0 WHERE Name = @1"
+                : "UPDATE Kits SET RefreshTime = @0 WHERE Name = @1 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        var kit = kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                        kit.RefreshTime = time;
+                        return db.Query(query, time, name) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
+
         public async Task<bool> AddRegionAsync(string name, string region)
         {
             var query = db.GetSqlType() == SqlType.Mysql

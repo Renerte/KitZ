@@ -184,7 +184,17 @@ namespace KitZ
                         e.Player.SendErrorMessage($"Could not set max kit uses for kit {e.Parameters[1]}!");
                     break;
                 case "time":
-                    //TODO: Set time, after which player's kit uses are reset.
+                    if (e.Parameters.Count < 3)
+                    {
+                        e.Player.SendErrorMessage("Use: /kitz time name time");
+                        return;
+                    }
+                    int time;
+                    TShock.Utils.TryParseTime(e.Parameters[2], out time);
+                    if (await KitZ.Kits.SetRefreshTimeAsync(e.Parameters[1], TimeSpan.FromSeconds(time)))
+                        e.Player.SendInfoMessage($"Set refresh time for kit {e.Parameters[1]}.");
+                    else
+                        e.Player.SendErrorMessage($"Could not set refresh time for kit {e.Parameters[1]}!");
                     break;
                 case "addregion":
                     if (e.Parameters.Count > 3)
