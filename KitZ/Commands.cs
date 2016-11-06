@@ -69,6 +69,8 @@ namespace KitZ
 
         public static async void Manage(CommandArgs e)
         {
+            if (e.Parameters.Count < 1)
+                e.Player.SendErrorMessage("Use /kitz help for a list of commands.");
             switch (e.Parameters[0])
             {
                 case "add":
@@ -171,16 +173,50 @@ namespace KitZ
                     }
                     break;
                 case "maxuse":
-                    //TODO: Set max amount of kit uses before refresh is required.
+                    if (e.Parameters.Count < 3)
+                    {
+                        e.Player.SendErrorMessage("Use: /kitz maxuse name amount");
+                        return;
+                    }
+                    if (await KitZ.Kits.SetMaxKitUsesAsync(e.Parameters[1], int.Parse(e.Parameters[2])))
+                        e.Player.SendInfoMessage($"Set max kit uses for kit {e.Parameters[1]} to {e.Parameters[2]}");
+                    else
+                        e.Player.SendErrorMessage($"Could not set max kit uses for kit {e.Parameters[1]}!");
                     break;
                 case "time":
-                    //TODO: Set time, after which player's kit uses are reset.
+                    if (e.Parameters.Count < 3)
+                    {
+                        e.Player.SendErrorMessage("Use: /kitz time name time");
+                        return;
+                    }
+                    int time;
+                    TShock.Utils.TryParseTime(e.Parameters[2], out time);
+                    if (await KitZ.Kits.SetRefreshTimeAsync(e.Parameters[1], TimeSpan.FromSeconds(time)))
+                        e.Player.SendInfoMessage($"Set refresh time for kit {e.Parameters[1]}.");
+                    else
+                        e.Player.SendErrorMessage($"Could not set refresh time for kit {e.Parameters[1]}!");
                     break;
                 case "addregion":
-                    //TODO: Add region to kit.
+                    if (e.Parameters.Count > 3)
+                    {
+                        e.Player.SendErrorMessage("Use: /kitz addregion name region");
+                        return;
+                    }
+                    if (await KitZ.Kits.AddRegionAsync(e.Parameters[1], e.Parameters[2]))
+                        e.Player.SendInfoMessage($"Added region {e.Parameters[2]} to kit {e.Parameters[1]}");
+                    else
+                        e.Player.SendErrorMessage($"Could not add region to kit {e.Parameters[1]}!");
                     break;
                 case "delregion":
-                    //TODO: Remove region from kit.
+                    if (e.Parameters.Count > 3)
+                    {
+                        e.Player.SendErrorMessage("Use: /kitz delregion name region");
+                        return;
+                    }
+                    if (await KitZ.Kits.DeleteRegionAsync(e.Parameters[1], e.Parameters[2]))
+                        e.Player.SendInfoMessage($"Deleted region {e.Parameters[2]} from kit {e.Parameters[1]}");
+                    else
+                        e.Player.SendErrorMessage($"Could not delete region from kit {e.Parameters[1]}!");
                     break;
                 case "help":
                     e.Player.SendInfoMessage(
