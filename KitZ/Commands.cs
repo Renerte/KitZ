@@ -175,7 +175,15 @@ namespace KitZ
                     }
                     break;
                 case "maxuse":
-                    //TODO: Set max amount of kit uses before refresh is required.
+                    if (e.Parameters.Count < 3)
+                    {
+                        e.Player.SendErrorMessage("Use: /kitz maxuse name amount");
+                        return;
+                    }
+                    if (await KitZ.Kits.SetMaxKitUsesAsync(e.Parameters[1], int.Parse(e.Parameters[2])))
+                        e.Player.SendInfoMessage($"Set max kit uses for kit ${e.Parameters[1]} to ${e.Parameters[2]}");
+                    else
+                        e.Player.SendErrorMessage($"Could not set max kit uses for kit ${e.Parameters[1]}!");
                     break;
                 case "time":
                     //TODO: Set time, after which player's kit uses are reset.
