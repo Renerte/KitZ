@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ namespace KitZ.Db
                 new SqlColumn("Name", MySqlDbType.VarChar, 32) {Length = 32, Unique = true},
                 new SqlColumn("Items", MySqlDbType.Text),
                 new SqlColumn("MaxUses", MySqlDbType.Int32),
-                new SqlColumn("RefreshTime", MySqlDbType.Int32),
+                new SqlColumn("RefreshTime", MySqlDbType.Text),
                 new SqlColumn("Regions", MySqlDbType.Text),
                 new SqlColumn("Protect", MySqlDbType.Int32)));
 
@@ -103,7 +104,7 @@ namespace KitZ.Db
                                     : new List<string>();
                                 var name = result.Get<string>("Name");
                                 var maxUses = result.Get<int>("MaxUses");
-                                var refreshTime = TimeSpan.Parse(result.Get<string>("RefreshTime"));
+                                var refreshTime = TimeSpan.ParseExact(result.Get<string>("RefreshTime"), "c", null);
                                 var protect = result.Get<bool>("Protect");
                                 kits.Add(new Kit(name, itemList, maxUses, refreshTime, regionList, protect));
                             }
@@ -160,12 +161,13 @@ namespace KitZ.Db
                     {
                         kits.Add(new Kit(name, itemList, maxUses, refreshTime, regionList, protect));
                         return db.Query(
-                                   "INSERT INTO Kits (Name, Items, MaxUses, RefreshTime, Regions) VALUES (@0, @1, @2, @3, @4)",
+                                   "INSERT INTO Kits (Name, Items, MaxUses, RefreshTime, Regions, Protect) VALUES (@0, @1, @2, @3, @4, @5)",
                                    name,
                                    string.Join(",", itemList),
                                    maxUses,
-                                   refreshTime,
-                                   string.Join(",", regionList)) > 0;
+                                   refreshTime.ToString("c"),
+                                   string.Join(",", regionList),
+                                   false) > 0;
                     }
                 }
                 catch (Exception ex)
