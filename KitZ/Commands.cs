@@ -58,6 +58,7 @@ namespace KitZ
                             TShock.Utils.GetItemById(kitItem.Id).name));
                 }
                 var kitUse = await KitZ.Kits.GetKitUseAsync(e.Player, kit);
+                if (kitUse == null) return;
                 await Task.Delay(kitUse.ExpireTime - DateTime.UtcNow);
                 await KitZ.Kits.DeleteKitUseAsync(kitUse);
             }
