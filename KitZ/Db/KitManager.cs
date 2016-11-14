@@ -497,7 +497,7 @@ namespace KitZ.Db
             {
                 foreach (var kitUse in kitUses)
                     if (kitUse.ExpireTime.CompareTo(DateTime.UtcNow) <= 0)
-                        DeleteKitUseAsync(kitUse);
+                        DeleteKitUseAsync(kitUse).Wait();
             }
         }
 
