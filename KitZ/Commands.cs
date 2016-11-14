@@ -219,6 +219,17 @@ namespace KitZ
                     else
                         e.Player.SendErrorMessage($"Could not delete region from kit {e.Parameters[1]}!");
                     break;
+                case "protect":
+                    if (e.Parameters.Count > 3)
+                    {
+                        e.Player.SendErrorMessage("Use: /kitz protect name true/false");
+                        return;
+                    }
+                    if (await KitZ.Kits.ProtectAsync(e.Parameters[1], bool.Parse(e.Parameters[2])))
+                        e.Player.SendInfoMessage($"Set protection flag for kit {e.Parameters[1]} to {e.Parameters[2]}");
+                    else
+                        e.Player.SendErrorMessage($"Could not set protection flag!");
+                    break;
                 case "help":
                     e.Player.SendInfoMessage(
                         $"KitZ v{Assembly.GetExecutingAssembly().GetName().Version} made by Renerte - totally customizable kits!");

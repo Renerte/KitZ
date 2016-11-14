@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -358,6 +357,31 @@ namespace KitZ.Db
             });
         }
 
+        public async Task<bool> ProtectAsync(string name, bool protect)
+        {
+            var query = db.GetSqlType() == SqlType.Mysql
+                ? "UPDATE Kits SET Protect = @0 WHERE Name = @1"
+                : "UPDATE Kits SET Protect = @0 WHERE Name = @1 COLLATE NOCASE";
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    lock (slimLock)
+                    {
+                        var kit = kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                        kit.Protect = protect;
+                        return db.Query(query, protect, name) > 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TShock.Log.Error(ex.ToString());
+                    return false;
+                }
+            });
+        }
+
         #endregion
 
         #region Kit uses
@@ -473,7 +497,7 @@ namespace KitZ.Db
             {
                 foreach (var kitUse in kitUses)
                     if (kitUse.ExpireTime.CompareTo(DateTime.UtcNow) <= 0)
-                        DeleteKitUseAsync(kitUse);
+                        DeleteKitUseAsync(kitUse).Wait();
             }
         }
 
