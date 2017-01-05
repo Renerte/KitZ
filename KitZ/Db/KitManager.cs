@@ -214,7 +214,7 @@ namespace KitZ.Db
             return await Task.Run(() =>
             {
                 var kit = kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
-                if ((kit == null) || (item.Id == 0) || (item.Amount == 0))
+                if (kit == null || item.Id == 0 || item.Amount == 0)
                     return false;
                 try
                 {
@@ -491,14 +491,14 @@ namespace KitZ.Db
             });
         }
 
-        public void CleanupKitUsesAsync()
+        public async void CleanupKitUsesAsync()
         {
-            lock (slimLock)
-            {
-                foreach (var kitUse in kitUses)
-                    if (kitUse.ExpireTime.CompareTo(DateTime.UtcNow) <= 0)
-                        DeleteKitUseAsync(kitUse).Wait();
-            }
+            var kitUsesToDelete = new List<KitUse>();
+            foreach (var kitUse in kitUses)
+                if (kitUse.ExpireTime.CompareTo(DateTime.UtcNow) <= 0)
+                    kitUsesToDelete.Add(kitUse);
+            foreach (var kitUse in kitUsesToDelete)
+                await DeleteKitUseAsync(kitUse);
         }
 
         #endregion

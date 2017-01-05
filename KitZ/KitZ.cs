@@ -52,12 +52,12 @@ namespace KitZ
 
         private void OnPlayerCommand(PlayerCommandEventArgs e)
         {
-            if (e.Handled || (e.Player == null))
+            if (e.Handled || e.Player == null)
                 return;
 
             var command = e.CommandList.FirstOrDefault();
-            if ((command == null) ||
-                (command.Permissions.Any() && !command.Permissions.Any(s => e.Player.Group.HasPermission(s))))
+            if (command == null ||
+                command.Permissions.Any() && !command.Permissions.Any(s => e.Player.Group.HasPermission(s)))
             {
             }
         }
