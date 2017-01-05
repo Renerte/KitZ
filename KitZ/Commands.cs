@@ -29,7 +29,7 @@ namespace KitZ
                 }
                 var playerRegion = e.Player.CurrentRegion;
                 var regionName = playerRegion != null ? playerRegion.Name : "";
-                if ((kit.RegionList.Count > 0) && !kit.RegionList.Contains(regionName))
+                if (kit.RegionList.Count > 0 && !kit.RegionList.Contains(regionName))
                 {
                     e.Player.SendErrorMessage(string.Format(KitZ.Config.OutsideRequiredRegion, kit.Name));
                     return;
@@ -48,7 +48,7 @@ namespace KitZ
                         break;
                     }
                     var item = TShock.Utils.GetItemById(kitItem.Id);
-                    if ((kitItem.Amount == 0) || (kitItem.Amount > item.maxStack))
+                    if (kitItem.Amount == 0 || kitItem.Amount > item.maxStack)
                         item.stack = item.maxStack;
                     else
                         item.stack = kitItem.Amount;
@@ -71,7 +71,10 @@ namespace KitZ
         public static async void Manage(CommandArgs e)
         {
             if (e.Parameters.Count < 1)
+            {
                 e.Player.SendErrorMessage("Use /kitz help for a list of commands.");
+                return;
+            }
             switch (e.Parameters[0])
             {
                 case "add":
