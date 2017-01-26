@@ -34,7 +34,7 @@ namespace KitZ
                     e.Player.SendErrorMessage(string.Format(KitZ.Config.OutsideRequiredRegion, kit.Name));
                     return;
                 }
-                if (!await KitZ.Kits.DoKitUseAsync(e.Player, kit))
+                if (e.Player.InventorySlotAvailable && !await KitZ.Kits.DoKitUseAsync(e.Player, kit))
                 {
                     e.Player.SendErrorMessage(string.Format(KitZ.Config.KitUseLimitReached, kit.Name));
                     return;
@@ -201,7 +201,7 @@ namespace KitZ
                         e.Player.SendErrorMessage($"Could not set refresh time for kit {e.Parameters[1]}!");
                     break;
                 case "addregion":
-                    if (e.Parameters.Count > 3)
+                    if (e.Parameters.Count < 3)
                     {
                         e.Player.SendErrorMessage("Use: /kitz addregion name region");
                         return;
@@ -212,7 +212,7 @@ namespace KitZ
                         e.Player.SendErrorMessage($"Could not add region to kit {e.Parameters[1]}!");
                     break;
                 case "delregion":
-                    if (e.Parameters.Count > 3)
+                    if (e.Parameters.Count < 3)
                     {
                         e.Player.SendErrorMessage("Use: /kitz delregion name region");
                         return;
