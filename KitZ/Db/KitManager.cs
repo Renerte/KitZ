@@ -296,7 +296,7 @@ namespace KitZ.Db
                     {
                         var kit = kits.Find(k => k.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
                         kit.RefreshTime = time;
-                        return db.Query(query, time, name) > 0;
+                        return db.Query(query, time.ToString("c"), name) > 0;
                     }
                 }
                 catch (Exception ex)
