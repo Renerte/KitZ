@@ -18,15 +18,15 @@ namespace KitZ.Db
             Protect = protect;
         }
 
-        public string Name { get; private set; }
-        public List<KitItem> ItemList { get; private set; }
-        public List<string> RegionList { get; private set; }
+        public string Name { get; }
+        public List<KitItem> ItemList { get; }
+        public List<string> RegionList { get; }
 
         public int MaxUses
         {
-            get { return maxUses; }
+            get => maxUses;
 
-            set { maxUses = value > 0 ? value : 0; }
+            set => maxUses = value > 0 ? value : 0;
         }
 
         public TimeSpan RefreshTime { get; set; }
