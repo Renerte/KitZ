@@ -16,7 +16,7 @@ namespace KitZ.Db
             ExpireTime = expireTime;
         }
 
-        public User User { get; private set; }
-        public Kit Kit { get; private set; }
+        public User User { get; }
+        public Kit Kit { get; }
     }
 }

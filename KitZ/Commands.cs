@@ -52,10 +52,10 @@ namespace KitZ
                         item.stack = item.maxStack;
                     else
                         item.stack = kitItem.Amount;
-                    if (!e.Player.GiveItemCheck(item.netID, item.name, item.width, item.height, item.stack,
+                    if (!e.Player.GiveItemCheck(item.netID, item.Name, item.width, item.height, item.stack,
                         kitItem.Modifier))
                         e.Player.SendErrorMessage(string.Format(KitZ.Config.ItemNotGiven,
-                            TShock.Utils.GetItemById(kitItem.Id).name));
+                            TShock.Utils.GetItemById(kitItem.Id).Name));
                 }
                 var kitUse = await KitZ.Kits.GetKitUseAsync(e.Player, kit);
                 if (kitUse == null || kit.RefreshTime == TimeSpan.Zero) return;
@@ -142,10 +142,10 @@ namespace KitZ
                     }
                     if (await KitZ.Kits.AddItemAsync(e.Parameters[1], item))
                         e.Player.SendInfoMessage(
-                            $"Added {TShock.Utils.GetItemById(item.Id).name} to kit {e.Parameters[1]}.");
+                            $"Added {TShock.Utils.GetItemById(item.Id).Name} to kit {e.Parameters[1]}.");
                     else
                         e.Player.SendErrorMessage(
-                            $"Could not add {TShock.Utils.GetItemById(item.Id).name} to kit {e.Parameters[1]}!");
+                            $"Could not add {TShock.Utils.GetItemById(item.Id).Name} to kit {e.Parameters[1]}!");
                     break;
                 case "delitem":
                     if (e.Parameters.Count > 3)
@@ -172,7 +172,7 @@ namespace KitZ
                         var i = 0;
                         foreach (var kitItem in kit.ItemList)
                             e.Player.SendInfoMessage(
-                                $"{++i}: {TShock.Utils.GetPrefixById(kitItem.Modifier)} {TShock.Utils.GetItemById(kitItem.Id).name} x {kitItem.Amount}");
+                                $"{++i}: {TShock.Utils.GetPrefixById(kitItem.Modifier)} {TShock.Utils.GetItemById(kitItem.Id).Name} x {kitItem.Amount}");
                         e.Player.SendInfoMessage("End of items.");
                     }
                     break;
