@@ -440,12 +440,17 @@ namespace KitZ.Db
                 {
                     lock (slimLock)
                     {
-                        kitUses.Add(new KitUse(player.User, kit, 0, DateTime.UtcNow.Add(kit.RefreshTime)));
+                        kitUses.Add(new KitUse(player.User, kit, 0,
+                            kit.RefreshTime == TimeSpan.Zero
+                                ? DateTime.MaxValue
+                                : DateTime.UtcNow.Add(kit.RefreshTime)));
                         return db.Query("INSERT INTO KitUses (UserID, Kit, Uses, ExpireTime) VALUES (@0, @1, @2, @3)",
                                    player.User.ID,
                                    kit.Name,
                                    0,
-                                   DateTime.UtcNow.Add(kit.RefreshTime).ToString()) > 0;
+                                   kit.RefreshTime == TimeSpan.Zero
+                                       ? DateTime.MaxValue.ToString("c")
+                                       : DateTime.UtcNow.Add(kit.RefreshTime).ToString("c")) > 0;
                     }
                 }
                 catch (Exception ex)
