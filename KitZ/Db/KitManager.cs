@@ -69,7 +69,7 @@ namespace KitZ.Db
                         kits.Find(
                             k => k.Name.Equals(result.Get<string>("Kit"), StringComparison.InvariantCultureIgnoreCase));
                     var uses = result.Get<int>("Uses");
-                    var expireTime = DateTime.Parse(result.Get<string>("ExpireTime"));
+                    var expireTime = DateTime.ParseExact(result.Get<string>("ExpireTime"), "u", null);
                     kitUses.Add(new KitUse(user, kit, uses, expireTime));
                 }
             }
@@ -121,7 +121,7 @@ namespace KitZ.Db
                                             k.Name.Equals(result.Get<string>("Kit"),
                                                 StringComparison.InvariantCultureIgnoreCase));
                                 var uses = result.Get<int>("Uses");
-                                var expireTime = DateTime.Parse(result.Get<string>("ExpireTime"));
+                                var expireTime = DateTime.ParseExact(result.Get<string>("ExpireTime"), "u", null);
                                 kitUses.Add(new KitUse(user, kit, uses, expireTime));
                             }
                         }
@@ -441,16 +441,16 @@ namespace KitZ.Db
                     lock (slimLock)
                     {
                         kitUses.Add(new KitUse(player.User, kit, 0,
-                            kit.RefreshTime == TimeSpan.Zero
+                            kit.RefreshTime.CompareTo(TimeSpan.Zero) == 0
                                 ? DateTime.MaxValue
                                 : DateTime.UtcNow.Add(kit.RefreshTime)));
                         return db.Query("INSERT INTO KitUses (UserID, Kit, Uses, ExpireTime) VALUES (@0, @1, @2, @3)",
                                    player.User.ID,
                                    kit.Name,
                                    0,
-                                   kit.RefreshTime == TimeSpan.Zero
-                                       ? DateTime.MaxValue.ToString("c")
-                                       : DateTime.UtcNow.Add(kit.RefreshTime).ToString("c")) > 0;
+                                   kit.RefreshTime.CompareTo(TimeSpan.Zero) == 0
+                                       ? DateTime.MaxValue.ToString("u")
+                                       : DateTime.UtcNow.Add(kit.RefreshTime).ToString("u")) > 0;
                     }
                 }
                 catch (Exception ex)
