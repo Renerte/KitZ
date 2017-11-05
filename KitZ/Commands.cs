@@ -42,11 +42,6 @@ namespace KitZ
                 e.Player.SendInfoMessage(string.Format(KitZ.Config.KitGiven, e.Parameters[0]));
                 foreach (var kitItem in kit.ItemList)
                 {
-                    if (!e.Player.InventorySlotAvailable)
-                    {
-                        e.Player.SendErrorMessage(KitZ.Config.NoInventorySpace);
-                        break;
-                    }
                     var item = TShock.Utils.GetItemById(kitItem.Id);
                     if (kitItem.Amount == 0 || kitItem.Amount > item.maxStack)
                         item.stack = item.maxStack;
