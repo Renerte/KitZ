@@ -122,12 +122,9 @@ namespace KitZ
 
             #region Commands
 
-            //Allows overriding of already created commands.
             void Add(Command c)
             {
-                //Finds any commands with names and aliases that match the new command and removes them.
                 TShockAPI.Commands.ChatCommands.RemoveAll(c2 => c2.Names.Exists(s2 => c.Names.Contains(s2)));
-                //Then adds the new command.
                 TShockAPI.Commands.ChatCommands.Add(c);
             }
 
