@@ -47,7 +47,7 @@ namespace KitZ
                         item.stack = item.maxStack;
                     else
                         item.stack = kitItem.Amount;
-                    if (!e.Player.GiveItemCheck(item.netID, item.Name, item.width, item.height, item.stack,
+                    if (!e.Player.GiveItemCheck(item.netID, item.Name, item.stack,
                         kitItem.Modifier))
                         e.Player.SendErrorMessage(string.Format(KitZ.Config.ItemNotGiven,
                             TShock.Utils.GetItemById(kitItem.Id).Name));
