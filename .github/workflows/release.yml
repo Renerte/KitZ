@@ -1,0 +1,29 @@
+name: Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Mono
+      run: |
+        sudo apt install gnupg ca-certificates
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+        echo "deb https://download.mono-project.com/repo/ubuntu stable-bionic main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
+        sudo apt update
+    - name: Install NuGet
+      run: wget https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
+    - name: Restore packages
+      run: mono nuget.exe restore KitZ.sln
+    - name: Build KitZ
+      run: msbuild KitZ.sln /p:Configuration=Release
+    - name: Upload to release
+      uses: JasonEtco/upload-to-release@master
+      with:
+        args: KitZ/bin/Release/KitZ.dll
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

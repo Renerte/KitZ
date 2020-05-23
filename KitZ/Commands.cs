@@ -47,7 +47,7 @@ namespace KitZ
                         item.stack = item.maxStack;
                     else
                         item.stack = kitItem.Amount;
-                    if (!e.Player.GiveItemCheck(item.netID, item.Name, item.width, item.height, item.stack,
+                    if (!e.Player.GiveItemCheck(item.netID, item.Name, item.stack,
                         kitItem.Modifier))
                         e.Player.SendErrorMessage(string.Format(KitZ.Config.ItemNotGiven,
                             TShock.Utils.GetItemById(kitItem.Id).Name));
@@ -109,16 +109,22 @@ namespace KitZ
                             var match = itemtag.Match(e.Parameters[2]);
                             if (match.Success)
                             {
-                                var id = !string.IsNullOrWhiteSpace(match.Groups[3].Value)
-                                    ? int.Parse(match.Groups[3].Value)
-                                    : 0;
-                                var amount = !string.IsNullOrWhiteSpace(match.Groups[2].Value)
-                                    ? int.Parse(match.Groups[2].Value)
-                                    : 0;
-                                var modifier = !string.IsNullOrWhiteSpace(match.Groups[1].Value)
-                                    ? int.Parse(match.Groups[1].Value)
-                                    : 0;
-                                item = new KitItem(id, amount, modifier);
+                                if (string.IsNullOrWhiteSpace(match.Groups[3].Value))
+                                {
+                                    e.Player.SendErrorMessage("Invalid item!");
+                                    return;
+                                }
+                                else
+                                {
+                                    var id = int.Parse(match.Groups[3].Value);
+                                    var amount = !string.IsNullOrWhiteSpace(match.Groups[2].Value)
+                                        ? int.Parse(match.Groups[2].Value)
+                                        : 1;
+                                    var modifier = !string.IsNullOrWhiteSpace(match.Groups[1].Value)
+                                        ? int.Parse(match.Groups[1].Value)
+                                        : 0;
+                                    item = new KitItem(id, amount, modifier);
+                                }
                                 break;
                             }
                             item = new KitItem(TShock.Utils.GetItemByIdOrName(e.Parameters[2]).First().netID, 1, 0);
