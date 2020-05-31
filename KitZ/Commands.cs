@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using KitZ.Db;
+using KitZ.Extensions;
 using TShockAPI;
 
 namespace KitZ
@@ -54,8 +55,11 @@ namespace KitZ
                 }
                 var kitUse = await KitZ.Kits.GetKitUseAsync(e.Player, kit);
                 if (kitUse == null || kit.RefreshTime == TimeSpan.Zero) return;
-                await Task.Delay(kitUse.ExpireTime - DateTime.UtcNow);
-                await KitZ.Kits.DeleteKitUseAsync(kitUse);
+                Task.Run(async () =>
+                {
+                    await Task.Delay(kitUse.ExpireTime - DateTime.UtcNow);
+                    await KitZ.Kits.DeleteKitUseAsync(kitUse);
+                }).Forget();
             }
             else
             {
