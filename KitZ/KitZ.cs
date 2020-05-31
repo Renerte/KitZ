@@ -146,6 +146,7 @@ namespace KitZ
         {
             Kits = new KitManager(Db);
             Kits.CleanupKitUsesAsync();
+            Kits.ScheduleKitUsesExpiration();
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using KitZ.Extensions;
 using MySql.Data.MySqlClient;
 using TShockAPI;
 using TShockAPI.DB;
@@ -504,6 +505,17 @@ namespace KitZ.Db
                     kitUsesToDelete.Add(kitUse);
             foreach (var kitUse in kitUsesToDelete)
                 await DeleteKitUseAsync(kitUse);
+        }
+
+        public void ScheduleKitUsesExpiration()
+        {
+            foreach (var kitUse in kitUses)
+                Task.Run(async () =>
+                {
+                    if (kitUse.Kit.RefreshTime == TimeSpan.Zero) return;
+                    await Task.Delay(kitUse.ExpireTime - DateTime.UtcNow);
+                    await DeleteKitUseAsync(kitUse);
+                }).Forget();
         }
 
         #endregion

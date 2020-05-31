@@ -74,6 +74,7 @@
     <Compile Include="Db\KitItem.cs" />
     <Compile Include="Db\KitManager.cs" />
     <Compile Include="Db\KitUse.cs" />
+    <Compile Include="Extensions\TaskExtensions.cs" />
     <Compile Include="KitZ.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
