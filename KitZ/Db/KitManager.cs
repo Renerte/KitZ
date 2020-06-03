@@ -499,20 +499,16 @@ namespace KitZ.Db
 
         public async void CleanupKitUsesAsync()
         {
-            var kitUsesToDelete = new List<KitUse>();
-            foreach (var kitUse in kitUses)
-                if (kitUse.ExpireTime.CompareTo(DateTime.UtcNow) <= 0)
-                    kitUsesToDelete.Add(kitUse);
+            var kitUsesToDelete = kitUses.Where(kitUse => kitUse.ExpireTime.CompareTo(DateTime.UtcNow) <= 0).ToList();
             foreach (var kitUse in kitUsesToDelete)
                 await DeleteKitUseAsync(kitUse);
         }
 
         public void ScheduleKitUsesExpiration()
         {
-            foreach (var kitUse in kitUses)
+            foreach (var kitUse in kitUses.Where(kitUse => kitUse.Kit.RefreshTime != TimeSpan.Zero))
                 Task.Run(async () =>
                 {
-                    if (kitUse.Kit.RefreshTime == TimeSpan.Zero) return;
                     await Task.Delay(kitUse.ExpireTime - DateTime.UtcNow);
                     await DeleteKitUseAsync(kitUse);
                 }).Forget();
