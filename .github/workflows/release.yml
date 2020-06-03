@@ -1,0 +1,23 @@
+name: Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install NuGet
+      run: wget https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
+    - name: Restore packages
+      run: mono nuget.exe restore KitZ.sln
+    - name: Build KitZ
+      run: msbuild KitZ.sln /p:Configuration=Release
+    - name: Upload to release
+      uses: JasonEtco/upload-to-release@master
+      with:
+        args: KitZ/bin/Release/KitZ.dll
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

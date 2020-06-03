@@ -8,15 +8,15 @@ namespace KitZ.Db
         public DateTime ExpireTime;
         public int Uses;
 
-        public KitUse(User user, Kit kit, int uses, DateTime expireTime)
+        public KitUse(UserAccount account, Kit kit, int uses, DateTime expireTime)
         {
-            User = user;
+            Account = account;
             Kit = kit;
             Uses = uses;
             ExpireTime = expireTime;
         }
 
-        public User User { get; }
+        public UserAccount Account { get; }
         public Kit Kit { get; }
     }
 }

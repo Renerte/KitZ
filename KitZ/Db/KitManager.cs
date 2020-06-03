@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using KitZ.Extensions;
 using MySql.Data.MySqlClient;
 using TShockAPI;
 using TShockAPI.DB;
@@ -64,13 +65,13 @@ namespace KitZ.Db
             {
                 while (result.Read())
                 {
-                    var user = TShock.Users.GetUserByID(result.Get<int>("UserID"));
+                    var account = TShock.UserAccounts.GetUserAccountByID(result.Get<int>("UserID"));
                     var kit =
                         kits.Find(
                             k => k.Name.Equals(result.Get<string>("Kit"), StringComparison.InvariantCultureIgnoreCase));
                     var uses = result.Get<int>("Uses");
                     var expireTime = DateTime.ParseExact(result.Get<string>("ExpireTime"), "u", null);
-                    kitUses.Add(new KitUse(user, kit, uses, expireTime));
+                    kitUses.Add(new KitUse(account, kit, uses, expireTime));
                 }
             }
 
@@ -114,7 +115,7 @@ namespace KitZ.Db
                         {
                             while (result.Read())
                             {
-                                var user = TShock.Users.GetUserByID(result.Get<int>("UserID"));
+                                var account = TShock.UserAccounts.GetUserAccountByID(result.Get<int>("UserID"));
                                 var kit =
                                     kits.Find(
                                         k =>
@@ -122,7 +123,7 @@ namespace KitZ.Db
                                                 StringComparison.InvariantCultureIgnoreCase));
                                 var uses = result.Get<int>("Uses");
                                 var expireTime = DateTime.ParseExact(result.Get<string>("ExpireTime"), "u", null);
-                                kitUses.Add(new KitUse(user, kit, uses, expireTime));
+                                kitUses.Add(new KitUse(account, kit, uses, expireTime));
                             }
                         }
                         return true;
@@ -392,7 +393,7 @@ namespace KitZ.Db
             {
                 lock (slimLock)
                 {
-                    return kitUses.Find(u => u.Kit.Equals(kit) && u.User.Equals(player.User));
+                    return kitUses.Find(u => u.Kit.Equals(kit) && u.Account.Equals(player.Account));
                 }
             });
         }
@@ -421,7 +422,7 @@ namespace KitZ.Db
                         if (kitUse.Uses >= kitUse.Kit.MaxUses)
                             return false;
                         kitUse.Uses += 1;
-                        return db.Query(query, kitUse.Uses, player.User.ID, kit.Name) > 0;
+                        return db.Query(query, kitUse.Uses, player.Account.ID, kit.Name) > 0;
                     }
                 }
                 catch (Exception ex)
@@ -440,12 +441,12 @@ namespace KitZ.Db
                 {
                     lock (slimLock)
                     {
-                        kitUses.Add(new KitUse(player.User, kit, 0,
+                        kitUses.Add(new KitUse(player.Account, kit, 0,
                             kit.RefreshTime.CompareTo(TimeSpan.Zero) == 0
                                 ? DateTime.MaxValue
                                 : DateTime.UtcNow.Add(kit.RefreshTime)));
                         return db.Query("INSERT INTO KitUses (UserID, Kit, Uses, ExpireTime) VALUES (@0, @1, @2, @3)",
-                                   player.User.ID,
+                                   player.Account.ID,
                                    kit.Name,
                                    0,
                                    kit.RefreshTime.CompareTo(TimeSpan.Zero) == 0
@@ -467,7 +468,7 @@ namespace KitZ.Db
             {
                 lock (slimLock)
                 {
-                    return kitUses.FindAll(u => u.User.Equals(player.User));
+                    return kitUses.FindAll(u => u.Account.Equals(player.Account));
                 }
             });
         }
@@ -485,7 +486,7 @@ namespace KitZ.Db
                     lock (slimLock)
                     {
                         kitUses.RemoveAll(u => u.Equals(kitUse));
-                        return db.Query(query, kitUse.User.ID, kitUse.Kit.Name) > 0;
+                        return db.Query(query, kitUse.Account.ID, kitUse.Kit.Name) > 0;
                     }
                 }
                 catch (Exception ex)
@@ -498,12 +499,19 @@ namespace KitZ.Db
 
         public async void CleanupKitUsesAsync()
         {
-            var kitUsesToDelete = new List<KitUse>();
-            foreach (var kitUse in kitUses)
-                if (kitUse.ExpireTime.CompareTo(DateTime.UtcNow) <= 0)
-                    kitUsesToDelete.Add(kitUse);
+            var kitUsesToDelete = kitUses.Where(kitUse => kitUse.ExpireTime.CompareTo(DateTime.UtcNow) <= 0).ToList();
             foreach (var kitUse in kitUsesToDelete)
                 await DeleteKitUseAsync(kitUse);
+        }
+
+        public void ScheduleKitUsesExpiration()
+        {
+            foreach (var kitUse in kitUses.Where(kitUse => kitUse.Kit.RefreshTime != TimeSpan.Zero))
+                Task.Run(async () =>
+                {
+                    await Task.Delay(kitUse.ExpireTime - DateTime.UtcNow);
+                    await DeleteKitUseAsync(kitUse);
+                }).Forget();
         }
 
         #endregion

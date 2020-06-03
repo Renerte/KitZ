@@ -40,14 +40,12 @@ namespace KitZ
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-            {
-                GeneralHooks.ReloadEvent -= OnReload;
-                PlayerHooks.PlayerCommand -= OnPlayerCommand;
+            if (!disposing) return;
+            GeneralHooks.ReloadEvent -= OnReload;
+            PlayerHooks.PlayerCommand -= OnPlayerCommand;
 
-                ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
-                ServerApi.Hooks.GamePostInitialize.Deregister(this, OnPostInitialize);
-            }
+            ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
+            ServerApi.Hooks.GamePostInitialize.Deregister(this, OnPostInitialize);
         }
 
         private void OnPlayerCommand(PlayerCommandEventArgs e)
@@ -124,14 +122,11 @@ namespace KitZ
 
             #region Commands
 
-            //Allows overriding of already created commands.
-            Action<Command> Add = c =>
+            void Add(Command c)
             {
-                //Finds any commands with names and aliases that match the new command and removes them.
                 TShockAPI.Commands.ChatCommands.RemoveAll(c2 => c2.Names.Exists(s2 => c.Names.Contains(s2)));
-                //Then adds the new command.
                 TShockAPI.Commands.ChatCommands.Add(c);
-            };
+            }
 
             Add(new Command("kit.use", Commands.Kit, "kit")
             {
@@ -151,6 +146,7 @@ namespace KitZ
         {
             Kits = new KitManager(Db);
             Kits.CleanupKitUsesAsync();
+            Kits.ScheduleKitUsesExpiration();
         }
     }
 }
